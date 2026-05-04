@@ -7,6 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "episode")
@@ -16,28 +18,33 @@ public class Episode {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long episodeId; // 회차 식별자
+    private Long episodeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId", nullable = false)
-    private Project project; // 프로젝트 식별자 (FK)
+    private Project project;
 
     @Column(nullable = false)
-    private Integer epNumber; // 회차 번호 (1화, 2화 등)
+    private Integer epNumber;
 
     @Column(length = 200)
-    private String epTitle; // 회차 제목
+    private String epTitle;
 
     @Column(columnDefinition = "TEXT")
-    private String content; // 회차 본문 내용 (설계안엔 없으나 서비스 구현을 위해 추가)
+    private String content;
+
+    // 추가: 에피소드에 속한 패널(컷) 리스트
+    // CascadeType.ALL을 통해 에피소드 저장/삭제 시 패널도 함께 관리됩니다.
+    @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Panel> panels = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt; // 생성일시
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updatedAt; // 수정일시
+    private LocalDateTime updatedAt;
 
     @Builder
     public Episode(Project project, Integer epNumber, String epTitle, String content) {
@@ -45,5 +52,11 @@ public class Episode {
         this.epNumber = epNumber;
         this.epTitle = epTitle;
         this.content = content;
+    }
+
+    // 편의 메서드: 에피소드에 패널을 추가할 때 연관관계를 자동으로 설정
+    public void addPanel(Panel panel) {
+        this.panels.add(panel);
+        panel.setEpisode(this);
     }
 }
