@@ -1,17 +1,23 @@
-package com.wit.auth.dto; // 프로젝트 구조에 맞춰 수정
+package com.wit.auth.dto;
 
 import com.wit.member.domain.Member;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+// Member 엔티티와 결합, 인증 객체
 @Getter
 public class PrincipalDetails implements UserDetails {
 
-    private final Member member; // 사용자님이 만든 Member 엔티티
+    private final Member member; // Member 엔티티
 
     public PrincipalDetails(Member member) {
         this.member = member;

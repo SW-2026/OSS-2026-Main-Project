@@ -1,11 +1,28 @@
 package com.wit.global.response;
 
-public record ApiResponse<T>(String status, String message, T data) {
-    public static <T> ApiResponse<T> created(T data) {
-        return new ApiResponse<>("201", "Created Success", data);
-    }
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class ApiResponse<T> {
+    private boolean success;
+    private T data;
+    private String message;
 
     public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>("200", "Success", data);
+        return new ApiResponse<>(true, data, null);
+    }
+
+    public static <T> ApiResponse<T> created(T data) {
+        return new ApiResponse<>(true, data, null);
+    }
+
+    public static ApiResponse<Void> error(String message) {
+        return new ApiResponse<>(false, null, message);
+    }
+
+    public static ApiResponse<Void> error(int code, String message) {
+        return new ApiResponse<>(false, null, "[" + code + "] " + message);
     }
 }
