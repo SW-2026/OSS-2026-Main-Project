@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/wit_db?serverTimezone=Asia/Seoul
+    username: root
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 운영은 validate, 개발은 update
+    show-sql: true
+
+jwt:
+  secret: your-secret-key-minimum-32-characters
+  expiration: 86400000  # 24시간
