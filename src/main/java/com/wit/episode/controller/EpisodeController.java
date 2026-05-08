@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/projects/{projectId}/episodes")
 public class EpisodeController {
 
     private final EpisodeService episodeService;
@@ -23,7 +22,7 @@ public class EpisodeController {
      * 1. 에피소드 생성 (POST)
      * 요청 예시: { "epNumber": 1, "epTitle": "1화 - 시작" }
      */
-    @PostMapping
+    @PostMapping("/api/projects/{projectId}/episodes")
     public ApiResponse<EpisodeResponse> create(
             @AuthenticationPrincipal PrincipalDetails principalDetails, // 현재 로그인한 사용자 정보
             @PathVariable Long projectId,
@@ -38,7 +37,7 @@ public class EpisodeController {
     /**
      * 2. 프로젝트 내 전체 에피소드 목록 조회 (GET)
      */
-    @GetMapping
+    @GetMapping("/api/projects/{projectId}/episodes")
     public ApiResponse<List<EpisodeSummaryResponse>> getAll(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable Long projectId
@@ -53,10 +52,10 @@ public class EpisodeController {
      * 3. 특정 에피소드 상세 조회 (GET)
      * 상세 정보와 패널 리스트를 함께 반환합니다.
      */
-    @GetMapping("/{episodeId}")
+    @GetMapping("/api/episodes/{episodeId}")
     public ApiResponse<EpisodeDetailResponse> getOne(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable Long projectId, // 경로는 유지하되 로직상 필요한 경우 사용
+            //@PathVariable Long projectId, // 경로는 유지하되 로직상 필요한 경우 사용
             @PathVariable Long episodeId
     ) {
         Member member = principalDetails.getMember();

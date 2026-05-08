@@ -3,10 +3,12 @@ package com.wit.auth.dto;
 import com.wit.member.domain.Member;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 // Member 엔티티와 결합, 인증 객체
 @Getter
@@ -21,9 +23,10 @@ public class PrincipalDetails implements UserDetails {
     // 권한 관련 설정 (현재는 빈 리스트나 기본 권한 부여)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> collect = new ArrayList<>();
-        collect.add(() -> "ROLE_USER"); // 기본 권한 설정
-        return collect;
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        // ROLE_ 접두사를 붙여서 명시적으로 객체를 생성
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        return authorities;
     }
 
     @Override

@@ -74,7 +74,7 @@ public class EpisodeService {
     //하나의 Episode 정보 조회(EpisodeDetailResponse
     public EpisodeDetailResponse getOne(Member member, Long episodeId) {
         // 1. 에피소드 존재 확인
-        Episode episode = episodeRepository.findById(episodeId)
+        Episode episode = episodeRepository.findByIdWithPanels(episodeId)
                 .orElseThrow(() -> new NoSuchElementException("해당 에피소드를 찾을 수 없습니다. ID: " + episodeId));
 
         // 2. 소유권 검증
@@ -99,7 +99,7 @@ public class EpisodeService {
 
     private Project validateProjectOwner(Member member, Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
         if (!project.getMember().getMemberId().equals(member.getMemberId())) {
             throw new AccessDeniedException("해당 프로젝트에 대한 접근 권한이 없습니다.");
