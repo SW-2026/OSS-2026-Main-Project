@@ -1,9 +1,6 @@
 package com.wit.auth.service;
 
-import com.wit.auth.dto.LoginRequest;
-import com.wit.auth.dto.MemberResponse;
-import com.wit.auth.dto.RegisterRequest;
-import com.wit.auth.dto.TokenResponse;
+import com.wit.auth.dto.*;
 import com.wit.auth.jwt.JwtTokenProvider;
 import com.wit.member.domain.Member;
 import com.wit.member.repository.MemberRepository;
@@ -22,16 +19,19 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     // 1. register: 회원가입
-    public  void register(RegisterRequest request) {
+    public Member register(RegisterRequest request) { // void -> Member
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
+
         Member member = Member.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
                 .build();
-        memberRepository.save(member);
+
+        // save()의 결과를 return해서 컨트롤러에 전달합니다.
+        return memberRepository.save(member);
     }
 
     // 2. login: 로그인 요청 확인, jwt 토큰 반환
@@ -46,10 +46,10 @@ public class AuthService {
 
     // 3. getMyInfo: 이메일을 통해 유저 정보 조회
     @Transactional(readOnly = true)
-    public MemberResponse getMyInfo(Long memberId) { // 파라미터 타입을 Long으로 변경
+    public MemberDetailResponse getMyInfo(Long memberId) { // 파라미터 타입을 Long으로 변경
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return MemberResponse.from(member);
+        return MemberDetailResponse.from(member);
     }
 }
