@@ -53,7 +53,8 @@ public class EpisodeService {
                 savedEpisode.getEpisodeId(),
                 episode.getProject().getProjectId(),
                 (long) savedEpisode.getEpNumber(),
-                savedEpisode.getEpTitle()
+                savedEpisode.getEpTitle(),
+                savedEpisode.getCreatedAt()
         );
     }
 
@@ -66,7 +67,8 @@ public class EpisodeService {
                         episode.getEpisodeId(),
                         (long) episode.getEpNumber(),
                         episode.getEpTitle(),
-                        episode.getPanels().size()
+                        episode.getPanels().size(),
+                        episode.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
     }

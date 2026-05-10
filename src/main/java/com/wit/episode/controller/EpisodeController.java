@@ -20,7 +20,7 @@ public class EpisodeController {
 
     /**
      * 1. 에피소드 생성 (POST)
-     * 요청 예시: { "epNumber": 1, "epTitle": "1화 - 시작" }
+     * 요청 예시: { "epNumber": 1, "epTitle": "1화 - 운명의 만남" }
      */
     @PostMapping("/api/projects/{projectId}/episodes")
     public ApiResponse<EpisodeResponse> create(
