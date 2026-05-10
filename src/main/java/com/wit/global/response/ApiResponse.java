@@ -11,11 +11,11 @@ public class ApiResponse<T> {
     private String message;
 
     public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>(true, data, null);
+        return new ApiResponse<>(true, data, "요청이 성공적으로 처리되었습니다.");
     }
 
     public static <T> ApiResponse<T> created(T data) {
-        return new ApiResponse<>(true, data, null);
+        return new ApiResponse<>(true, data, "요청이 성공적으로 처리되었습니다.");
     }
 
     /**

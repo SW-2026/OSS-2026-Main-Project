@@ -12,4 +12,5 @@ public class EpisodeSummaryResponse {
     private Long epNumber;
     private String epTitle;
     private int panelCount;
+    private LocalDateTime createdAt;
 }
