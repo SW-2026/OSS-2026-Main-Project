@@ -2,6 +2,7 @@ package com.wit.auth.controller;
 
 import com.wit.auth.dto.*;
 import com.wit.auth.service.AuthService;
+import com.wit.member.domain.Member;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,9 @@ public class AuthController {
     // 1. 회원가입: 이메일/비번/닉네임
     @PostMapping("/register")
     public ResponseEntity<MemberResponse> register(@Valid @RequestBody RegisterRequest request) {
-        authService.register(request);
-        return ResponseEntity.ok().build();
+        Member savedMember = authService.register(request);
+
+        return ResponseEntity.ok(MemberResponse.from(savedMember));
     }
 
     // 2. 로그인: JWT 토큰 반환
@@ -31,7 +33,9 @@ public class AuthController {
     // 3. 내 정보 조회: 토큰으로 본인 확인
     // SecurityContext에 저장된 유저 정보를 가져오기 위해 @AuthenticationPrincipal 사용
     @GetMapping("/me")
-    public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal PrincipalDetails principalDetails) {
-        return ResponseEntity.ok(MemberResponse.from(principalDetails.getMember()));
+    public ResponseEntity<MemberDetailResponse> getMyInfo(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+        Long memberId = principalDetails.getMember().getMemberId();
+        MemberDetailResponse response = authService.getMyInfo(memberId);
+        return ResponseEntity.ok(response);
     }
 }
