@@ -1,0 +1,19 @@
+### 1. 에피소드 생성 (1화)
+POST http://localhost:8080/api/projects/1/episodes
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "epNumber": 1,
+  "epTitle": "운명적인 만남"
+}
+
+### 2. 에피소드 목록 조회 (특정 프로젝트의 모든 에피소드)
+GET http://localhost:8080/api/projects/1/episodes
+Authorization: Bearer {{access_token}}
+Accept: application/json
+
+### 3. 에피소드 상세 조회 (특정 에피소드 1개의 컷 목록 포함 확인)
+GET http://localhost:8080/api/episodes/1
+Authorization: Bearer {{access_token}}
+Accept: application/json
