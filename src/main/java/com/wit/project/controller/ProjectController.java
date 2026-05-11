@@ -7,6 +7,7 @@ import com.wit.project.dto.ProjectCreateRequest;
 import com.wit.project.dto.ProjectDetailResponse;
 import com.wit.project.dto.ProjectResponse;
 import com.wit.project.dto.ProjectSummaryResponse;
+import com.wit.project.dto.ProjectUpdateRequest;
 import com.wit.project.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -75,5 +76,20 @@ public class ProjectController {
         Member member = principalDetails.getMember();
         projectService.delete(member, projectId);
         return ApiResponse.<Void>ok(null); // 200 OK + data:null
+    }
+
+    /**
+     * 5. 프로젝트 부분 수정 (PATCH /api/projects/{projectId})
+     * 요청 바디는 ProjectUpdateRequest — null이 아닌 필드만 덮어씁니다.
+     */
+    @PatchMapping("/{projectId}")
+    public ApiResponse<ProjectDetailResponse> update(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable Long projectId,
+            @Valid @RequestBody ProjectUpdateRequest request
+    ) {
+        Member member = principalDetails.getMember();
+        ProjectDetailResponse response = projectService.update(member, projectId, request);
+        return ApiResponse.ok(response);
     }
 }

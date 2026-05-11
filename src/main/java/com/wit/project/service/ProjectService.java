@@ -6,6 +6,7 @@ import com.wit.project.dto.ProjectCreateRequest;
 import com.wit.project.dto.ProjectDetailResponse;
 import com.wit.project.dto.ProjectResponse;
 import com.wit.project.dto.ProjectSummaryResponse;
+import com.wit.project.dto.ProjectUpdateRequest;
 import com.wit.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -77,6 +78,13 @@ public class ProjectService {
                 project.getProjectId(),
                 project.getTitle(),
                 project.getGenre(),
+                project.getStyleBasePrompt(),
+                project.getNegativePrompt(),
+                project.getBackgroundPrompt(),
+                project.getLoraTriggerTag(),
+                project.getLoraModelPath(),
+                project.getCharacterAppearancePrompt(),
+                project.getCharacterOutfitPrompt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 episodeBriefs
@@ -88,6 +96,51 @@ public class ProjectService {
     public void delete(Member member, Long projectId) {
         Project project = validateProjectOwner(member, projectId);
         projectRepository.delete(project);
+    }
+
+    // 프로젝트 부분 수정 (PATCH) — null이 아닌 필드만 반영, 변경감지(dirty checking)로 자동 저장
+    @Transactional
+    public ProjectDetailResponse update(Member member, Long projectId, ProjectUpdateRequest request) {
+        // 1) 소유권 검증 — 미존재 시 IllegalArgumentException(400), 소유자 아닐 시 AccessDeniedException(403)
+        Project project = validateProjectOwner(member, projectId);
+
+        // 2) 엔티티의 updatePartial로 null이 아닌 필드만 덮어씀
+        project.updatePartial(
+                request.getTitle(),
+                request.getGenre(),
+                request.getStyleBasePrompt(),
+                request.getNegativePrompt(),
+                request.getBackgroundPrompt(),
+                request.getLoraTriggerTag(),
+                request.getLoraModelPath(),
+                request.getCharacterAppearancePrompt(),
+                request.getCharacterOutfitPrompt()
+        );
+
+        // 3) 회차 요약 매핑 후 상세 응답 DTO로 변환 (1단계 종료 후 getOne과의 중복은 별도 리팩터링 예정)
+        List<ProjectDetailResponse.EpisodeBrief> episodeBriefs = project.getEpisodes().stream()
+                .map(e -> new ProjectDetailResponse.EpisodeBrief(
+                        e.getEpisodeId(),
+                        e.getEpNumber(),
+                        e.getEpTitle()
+                ))
+                .collect(Collectors.toList());
+
+        return new ProjectDetailResponse(
+                project.getProjectId(),
+                project.getTitle(),
+                project.getGenre(),
+                project.getStyleBasePrompt(),
+                project.getNegativePrompt(),
+                project.getBackgroundPrompt(),
+                project.getLoraTriggerTag(),
+                project.getLoraModelPath(),
+                project.getCharacterAppearancePrompt(),
+                project.getCharacterOutfitPrompt(),
+                project.getCreatedAt(),
+                project.getUpdatedAt(),
+                episodeBriefs
+        );
     }
 
     /**
