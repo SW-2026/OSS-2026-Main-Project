@@ -13,6 +13,14 @@ public class ProjectDetailResponse {
     private Long projectId;
     private String title;
     private String genre;
+    // === AI 이미지 생성용 프롬프트 필드 (Project 엔티티와 동일) ===
+    private String styleBasePrompt;
+    private String negativePrompt;
+    private String backgroundPrompt;
+    private String loraTriggerTag;
+    private String loraModelPath;
+    private String characterAppearancePrompt;
+    private String characterOutfitPrompt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<EpisodeBrief> episodes; // 회차 요약 리스트 (없으면 빈 리스트)
