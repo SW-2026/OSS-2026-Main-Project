@@ -4,6 +4,7 @@ import com.wit.global.response.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,6 +33,17 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleEntityNotFoundException(EntityNotFoundException e) {
         log.warn("리소스 찾기 실패: {}", e.getMessage());
         return ApiResponse.error(404, e.getMessage());
+    }
+
+    /**
+     * AccessDeniedException: 인증은 되었으나 권한이 부족한 경우 (403 Forbidden)
+     * 예: 다른 회원의 리소스에 접근 시도
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("접근 권한 없음: {}", e.getMessage());
+        return ApiResponse.error(403, e.getMessage());
     }
 
     /**
