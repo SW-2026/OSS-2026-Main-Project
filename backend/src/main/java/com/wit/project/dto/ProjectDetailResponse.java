@@ -17,10 +17,6 @@ public class ProjectDetailResponse {
     private String styleBasePrompt;
     private String negativePrompt;
     private String backgroundPrompt;
-    private String loraTriggerTag;
-    private String loraModelPath;
-    private String characterAppearancePrompt;
-    private String characterOutfitPrompt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<EpisodeBrief> episodes; // 회차 요약 리스트 (없으면 빈 리스트)

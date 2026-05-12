@@ -8,6 +8,7 @@ import com.wit.project.dto.ProjectResponse;
 import com.wit.project.dto.ProjectSummaryResponse;
 import com.wit.project.dto.ProjectUpdateRequest;
 import com.wit.project.repository.ProjectRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -81,10 +82,6 @@ public class ProjectService {
                 project.getStyleBasePrompt(),
                 project.getNegativePrompt(),
                 project.getBackgroundPrompt(),
-                project.getLoraTriggerTag(),
-                project.getLoraModelPath(),
-                project.getCharacterAppearancePrompt(),
-                project.getCharacterOutfitPrompt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 episodeBriefs
@@ -110,11 +107,7 @@ public class ProjectService {
                 request.getGenre(),
                 request.getStyleBasePrompt(),
                 request.getNegativePrompt(),
-                request.getBackgroundPrompt(),
-                request.getLoraTriggerTag(),
-                request.getLoraModelPath(),
-                request.getCharacterAppearancePrompt(),
-                request.getCharacterOutfitPrompt()
+                request.getBackgroundPrompt()
         );
 
         // 3) 회차 요약 매핑 후 상세 응답 DTO로 변환 (1단계 종료 후 getOne과의 중복은 별도 리팩터링 예정)
@@ -133,10 +126,6 @@ public class ProjectService {
                 project.getStyleBasePrompt(),
                 project.getNegativePrompt(),
                 project.getBackgroundPrompt(),
-                project.getLoraTriggerTag(),
-                project.getLoraModelPath(),
-                project.getCharacterAppearancePrompt(),
-                project.getCharacterOutfitPrompt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 episodeBriefs
@@ -145,12 +134,12 @@ public class ProjectService {
 
     /**
      * EpisodeService의 동일 이름 메서드와 같은 패턴.
-     * 1) 프로젝트가 존재하지 않으면 IllegalArgumentException → GlobalExceptionHandler가 400으로 매핑
-     * 2) 소유자가 아니면 AccessDeniedException → Spring Security 기본 처리(403)
+     * 1) 프로젝트가 존재하지 않으면 EntityNotFoundException → GlobalExceptionHandler가 404로 매핑
+     * 2) 소유자가 아니면 AccessDeniedException → GlobalExceptionHandler가 403으로 매핑
      */
     private Project validateProjectOwner(Member member, Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
+                .orElseThrow(() -> new EntityNotFoundException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));
 
         if (!project.getMember().getMemberId().equals(member.getMemberId())) {
             throw new AccessDeniedException("해당 프로젝트에 대한 접근 권한이 없습니다.");
