@@ -1,0 +1,25 @@
+### 1. 프로젝트 생성
+POST http://localhost:8080/api/projects
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "title": "내 첫 웹툰",
+  "genre": "로맨스"
+}
+
+> {% client.global.set("project_id", response.body.data.projectId); %}
+
+### 2. 내 프로젝트 목록 조회
+GET http://localhost:8080/api/projects
+Authorization: Bearer {{access_token}}
+Accept: application/json
+
+### 3. 프로젝트 상세 조회
+GET http://localhost:8080/api/projects/{{project_id}}
+Authorization: Bearer {{access_token}}
+Accept: application/json
+
+### 4. 프로젝트 삭제
+DELETE http://localhost:8080/api/projects/{{project_id}}
+Authorization: Bearer {{access_token}}
