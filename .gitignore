@@ -1,7 +1,7 @@
 HELP.md
 .gradle
 build/
-!backend_1?œìœ„/gradle/wrapper/gradle-wrapper.jar
+!backend_1ìˆœìœ„/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -18,7 +18,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-backend_1?œìœ„/.idea
+backend_1ìˆœìœ„/.idea
 *.iws
 *.iml
 *.ipr
@@ -35,10 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
-/backend_1?œìœ„/ 
- 
-  
-# °³ÀÎ ÀÛ¾÷ µµ±¸ ÆÄÀÏ 
+/backend_1ìˆœìœ„/
+
+
+# ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 CLAUDE.md
-docs/ 
-.claude/ 
+docs/
+.claude/

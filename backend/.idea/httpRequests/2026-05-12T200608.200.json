@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "finalImageUrl": null,
+      "layoutData": null,
+      "panelId": 3,
+      "panelOrder": 1,
+      "prompt": null,
+      "status": "CREATED"
+    },
+    {
+      "finalImageUrl": null,
+      "layoutData": null,
+      "panelId": 6,
+      "panelOrder": 1,
+      "prompt": null,
+      "status": "PENDING"
+    },
+    {
+      "finalImageUrl": null,
+      "layoutData": null,
+      "panelId": 5,
+      "panelOrder": 2,
+      "prompt": null,
+      "status": "CREATED"
+    },
+    {
+      "finalImageUrl": null,
+      "layoutData": null,
+      "panelId": 4,
+      "panelOrder": 3,
+      "prompt": null,
+      "status": "CREATED"
+    },
+    {
+      "finalImageUrl": null,
+      "layoutData": null,
+      "panelId": 2,
+      "panelOrder": 4,
+      "prompt": null,
+      "status": "CREATED"
+    }
+  ],
+  "message": "요청이 성공적으로 처리되었습니다.",
+  "success": true
+}

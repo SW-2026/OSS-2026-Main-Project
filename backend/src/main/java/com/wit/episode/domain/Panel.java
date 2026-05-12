@@ -20,6 +20,7 @@ public class Panel {
     private int panelOrder; // 컷 순서
 
     @Enumerated(EnumType.STRING) // Enum을 문자열로 DB에 저장
+    @Column(name = "status", length = 30)
     private PanelStatus status;
 
     private String finalImageUrl;
@@ -31,6 +32,9 @@ public class Panel {
 
     @Column(columnDefinition = "TEXT")
     private String extractedParams;
+
+    @Column(columnDefinition = "TEXT")
+    private String layoutData; // 레이어별 위치, 크기 정보 (JSON 문자열)
 
     @Column(columnDefinition = "TEXT")
     private String finalPrompt;
@@ -75,6 +79,16 @@ public class Panel {
     public void markFailed(String errorMessage) {
         this.status = PanelStatus.FAILED;
         this.errorMessage = errorMessage;
+    }
+
+    //컷 순서 변경
+    public void updateOrder(int panelOrder) {
+        this.panelOrder = panelOrder;
+    }
+
+    // 레이어 데이터 업데이트를 위한 비즈니스 메서드
+    public void updateLayoutData(String layoutData) {
+        this.layoutData = layoutData;
     }
 
     public void updateStatus(PanelStatus status) {

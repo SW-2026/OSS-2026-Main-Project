@@ -1,0 +1,27 @@
+### 1. 회원가입
+POST http://localhost:8080/api/members/register
+Content-Type: application/json
+
+{
+  "email": "test@wit.com",
+  "password": "password123!",
+  "nickname": "위트작가"
+}
+
+> {% client.global.set("auth_email", response.body.email); %}
+
+### 2. 로그인 (토큰 발급)
+POST http://localhost:8080/api/members/login
+Content-Type: application/json
+
+{
+  "email": "test@wit.com",
+  "password": "password123!"
+}
+
+> {% client.global.set("access_token", response.body.accessToken); %}
+
+### 3. 내 정보 조회 (토큰 사용)
+GET http://localhost:8080/api/members/me
+Authorization: Bearer {{access_token}}
+Accept: application/json
