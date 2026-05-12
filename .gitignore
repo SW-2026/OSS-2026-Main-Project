@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+/backend_1순위/
+
+
+# ���� �۾� ���� ����
+CLAUDE.md
+docs/
+.claude/
