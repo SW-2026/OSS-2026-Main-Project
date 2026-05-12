@@ -13,7 +13,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "character_model")
+@Table(name = "character_model",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_character_model_project_name",
+                columnNames = {"project_id", "model_name"}
+        ))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -27,7 +31,7 @@ public class CharacterModel {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "model_name", nullable = false, length = 100)
     private String modelName;                 // 사용자 식별용 (예: "주인공 v1")
 
     @Column(name = "trigger_word", length = 100)
