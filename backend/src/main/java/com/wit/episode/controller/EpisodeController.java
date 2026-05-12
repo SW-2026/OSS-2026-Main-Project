@@ -25,7 +25,7 @@ public class EpisodeController {
     @PostMapping("/api/projects/{projectId}/episodes")
     public ApiResponse<EpisodeResponse> create(
             @AuthenticationPrincipal PrincipalDetails principalDetails, // 현재 로그인한 사용자 정보
-            @PathVariable Long projectId,
+            @PathVariable("projectId") Long projectId,
             @Valid @RequestBody EpisodeCreateRequest request
     ) {
         Member member = principalDetails.getMember();
@@ -40,7 +40,7 @@ public class EpisodeController {
     @GetMapping("/api/projects/{projectId}/episodes")
     public ApiResponse<List<EpisodeSummaryResponse>> getAll(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable Long projectId
+            @PathVariable("projectId") Long projectId
     ) {
         Member member = principalDetails.getMember();
 
@@ -56,7 +56,7 @@ public class EpisodeController {
     public ApiResponse<EpisodeDetailResponse> getOne(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             //@PathVariable Long projectId, // 경로는 유지하되 로직상 필요한 경우 사용
-            @PathVariable Long episodeId
+            @PathVariable("episodeId") Long episodeId
     ) {
         Member member = principalDetails.getMember();
 

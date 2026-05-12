@@ -1,0 +1,11 @@
+{
+  "data": {
+    "createdAt": "2026-05-12T19:38:31.573461",
+    "genre": "로맨스",
+    "memberId": 1,
+    "projectId": 2,
+    "title": "내 첫 웹툰"
+  },
+  "message": "요청이 성공적으로 처리되었습니다.",
+  "success": true
+}

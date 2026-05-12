@@ -29,6 +29,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/members/me").authenticated()
                         .requestMatchers("/api/episodes/**").authenticated()
                         .requestMatchers("/api/projects/**").authenticated()
+                        .requestMatchers("/api/panels/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

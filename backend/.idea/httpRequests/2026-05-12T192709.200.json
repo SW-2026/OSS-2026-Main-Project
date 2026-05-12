@@ -1,0 +1,97 @@
+{
+  "data": [
+    {
+      "createdAt": "2026-05-08T23:00:00.143781",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 1,
+      "panelCount": 5
+    },
+    {
+      "createdAt": "2026-05-08T23:00:32.257007",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 2,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-08T23:09:36.14441",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 3,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-08T23:10:36.676407",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 4,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-08T23:21:19.688765",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 5,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-08T23:36:10.842351",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 6,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-08T23:41:36.13172",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 7,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-10T13:00:42.146475",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 8,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-10T13:01:49.147921",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 9,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-10T13:37:55.189356",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 10,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-10T13:38:24.599929",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 11,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-10T13:42:42.1764",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 12,
+      "panelCount": 0
+    },
+    {
+      "createdAt": "2026-05-12T19:25:19.017973",
+      "epNumber": 1,
+      "epTitle": "운명적인 만남",
+      "episodeId": 13,
+      "panelCount": 10
+    }
+  ],
+  "message": "요청이 성공적으로 처리되었습니다.",
+  "success": true
+}

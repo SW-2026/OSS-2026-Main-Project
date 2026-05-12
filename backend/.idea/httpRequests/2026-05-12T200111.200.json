@@ -1,0 +1,23 @@
+{
+  "data": {
+    "episodeId": 1,
+    "epNumber": 1,
+    "epTitle": "운명적인 만남",
+    "panels": [
+      {
+        "panelId": 1,
+        "panelOrder": 1,
+        "status": "CREATED",
+        "finalImageUrl": null
+      },
+      {
+        "panelId": 2,
+        "panelOrder": 2,
+        "status": "CREATED",
+        "finalImageUrl": null
+      }
+    ]
+  },
+  "message": "요청이 성공적으로 처리되었습니다.",
+  "success": true
+}

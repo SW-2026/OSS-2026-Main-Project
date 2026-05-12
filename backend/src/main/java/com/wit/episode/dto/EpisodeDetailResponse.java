@@ -1,5 +1,6 @@
 package com.wit.episode.dto;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.wit.episode.domain.PanelStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
+@JsonPropertyOrder({ "episodeId", "epNumber", "epTitle", "panels" })
 public class EpisodeDetailResponse {
     private Long episodeId;
     private Long epNumber;
@@ -16,6 +18,7 @@ public class EpisodeDetailResponse {
 
     @Getter
     @AllArgsConstructor
+    @JsonPropertyOrder({ "panelId", "panelOrder", "status", "finalImageUrl" })
     public static class PanelResponse {
         private Long panelId;
         private int panelOrder;
