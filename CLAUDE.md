@@ -1,5 +1,0 @@
-- 기존 코드 스타일과 패키지 구조(feature-slice, com.wit 하위)를 따를 것
-- 응답은 ApiResponse<T> 래퍼로 감쌀 것
-- 예외는 IllegalArgumentException(400), EntityNotFoundException(404), AccessDeniedException(403) 규칙을 따를 것
-- 한 번에 너무 많이 만들지 말고 지시한 범위만 정확히 구현할 것
-- 작업 끝나면 변경/추가된 파일 목록을 요약해줄 것
