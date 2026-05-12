@@ -14,7 +14,7 @@ public class Panel {
 
     @Setter // 편의 메서드를 위해 추가
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "episodeId", nullable = false)
+    @JoinColumn(name = "episode_id", nullable = false)
     private Episode episode;
 
     private int panelOrder; // 컷 순서
