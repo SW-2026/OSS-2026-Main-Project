@@ -81,10 +81,6 @@ public class ProjectService {
                 project.getStyleBasePrompt(),
                 project.getNegativePrompt(),
                 project.getBackgroundPrompt(),
-                project.getLoraTriggerTag(),
-                project.getLoraModelPath(),
-                project.getCharacterAppearancePrompt(),
-                project.getCharacterOutfitPrompt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 episodeBriefs
@@ -110,11 +106,7 @@ public class ProjectService {
                 request.getGenre(),
                 request.getStyleBasePrompt(),
                 request.getNegativePrompt(),
-                request.getBackgroundPrompt(),
-                request.getLoraTriggerTag(),
-                request.getLoraModelPath(),
-                request.getCharacterAppearancePrompt(),
-                request.getCharacterOutfitPrompt()
+                request.getBackgroundPrompt()
         );
 
         // 3) 회차 요약 매핑 후 상세 응답 DTO로 변환 (1단계 종료 후 getOne과의 중복은 별도 리팩터링 예정)
@@ -133,10 +125,6 @@ public class ProjectService {
                 project.getStyleBasePrompt(),
                 project.getNegativePrompt(),
                 project.getBackgroundPrompt(),
-                project.getLoraTriggerTag(),
-                project.getLoraModelPath(),
-                project.getCharacterAppearancePrompt(),
-                project.getCharacterOutfitPrompt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 episodeBriefs
