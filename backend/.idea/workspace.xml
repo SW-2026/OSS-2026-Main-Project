@@ -4,33 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ae093dd9-1dd1-41f2-adde-1d4c113ce813" name="Changes" comment="backend/panel 도메인 구현">
-      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194134.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194140.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194434.500.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194529.500.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194757.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194800.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194847.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194855.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194858.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T195146.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T195151.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200111.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200114.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200120.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200124.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200127.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T200135.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wit/episode/domain/History.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wit/episode/domain/PanelHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wit/episode/domain/PanelHistory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wit/episode/dto/HistoryRestore.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wit/episode/dto/HistoryRestore.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wit/episode/service/HistoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wit/episode/service/HistoryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/history-test.http" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/history-test.http" afterDir="false" />
-    </list>
+    <list default="true" id="ae093dd9-1dd1-41f2-adde-1d4c113ce813" name="Changes" comment="History 기능 구현 완료" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,14 +44,14 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/SW-2026/OSS-2026-Main-Project.git&quot;,
     &quot;accountId&quot;: &quot;8f4c25d4-a852-42e5-897b-aa055fdeae23&quot;
-  }
-}</component>
+    }
+    }</component>
   <component name="HttpClientOnboardingState">{
-  &quot;isOnboardingCommentShown&quot;: true
-}</component>
+    &quot;isOnboardingCommentShown&quot;: true
+    }</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -96,7 +70,7 @@
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
     "Spring Boot.WitApplication.executor": "Run",
-    "git-widget-placeholder": "history",
+    "git-widget-placeholder": "feat/history",
     "node.js.selected.package.tslint": "(autodetect)",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
@@ -184,7 +158,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778586760796</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="History 기능 구현 완료">
+      <option name="closed" value="true" />
+      <created>1778655281588</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778655281589</updated>
+    </task>
+    <task id="LOCAL-00003" summary="History 기능 구현 완료">
+      <option name="closed" value="true" />
+      <created>1778655301531</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778655301531</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -201,6 +191,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Merge branch 'main' of https://github.com/SW-2026/OSS-2026-Main-Project into history" />
     <MESSAGE value="backend/panel 도메인 구현" />
-    <option name="LAST_COMMIT_MESSAGE" value="backend/panel 도메인 구현" />
+    <MESSAGE value="History 기능 구현 완료" />
+    <option name="LAST_COMMIT_MESSAGE" value="History 기능 구현 완료" />
   </component>
 </project>
