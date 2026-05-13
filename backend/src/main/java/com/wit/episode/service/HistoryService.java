@@ -31,7 +31,11 @@ public class HistoryService {
         Optional<Integer> maxVersion = historyRepository.findMaxVersionByPanelId(panelId);
         if (maxVersion.isPresent()) {
             PanelHistory latest = historyRepository.findByPanel_PanelIdAndVersion(panelId, maxVersion.get()).get();
-            if (latest.getLayoutData().equals(layoutData)) {
+
+            boolean isLayoutSame = latest.getLayoutData().equals(layoutData);
+            boolean isCanvasSame = latest.getCanvasData().equals(canvasData);
+
+            if (isLayoutSame&&isCanvasSame) {
                 return; // 최신 데이터와 동일하면 저장하지 않음
             }
         }
@@ -78,7 +82,7 @@ public class HistoryService {
         String canvasDataToRestore = targetHistory.getCanvasData();
         saveHistory(panelId, layoutDataToRestore, canvasDataToRestore);
 
-        // 3. 프론트엔드에서 캔버스에 즉시 적용할 수 있도록 데이터를 반환
+        // 3. 프론트엔드에서 캔버스에 즉시 적용할 수 있도록 데이터를 반환(만약 canvasData는 필요없다면 삭제)
         return HistoryRestore.of(layoutDataToRestore, canvasDataToRestore);
     }
 }
