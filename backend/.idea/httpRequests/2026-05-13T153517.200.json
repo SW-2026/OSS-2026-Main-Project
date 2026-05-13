@@ -1,0 +1,4 @@
+{
+  "layoutData": "{\"layers\": [{\"id\": 1, \"x\": 50, \"y\": 50}]}",
+  "canvasData": "{\"objects\": [{\"type\": \"circle\", \"radius\": 20, \"fill\": \"red\"}]}"
+}
