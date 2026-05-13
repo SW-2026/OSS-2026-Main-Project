@@ -32,7 +32,7 @@ public class Project {
     @Column(length = 50)
     private String genre;
 
-    // === AI 이미지 생성용 프롬프트 필드 (추후 CharacterLora 분리 예정) ===
+    // === AI 이미지 생성용 작품 단위 프롬프트 ===
 
     @Column(columnDefinition = "TEXT")
     private String styleBasePrompt;
@@ -42,18 +42,6 @@ public class Project {
 
     @Column(columnDefinition = "TEXT")
     private String backgroundPrompt;
-
-    @Column(length = 200)
-    private String loraTriggerTag;
-
-    @Column(length = 500)
-    private String loraModelPath;
-
-    @Column(columnDefinition = "TEXT")
-    private String characterAppearancePrompt;
-
-    @Column(columnDefinition = "TEXT")
-    private String characterOutfitPrompt;
 
     // mappedBy에는 Episode 엔티티 안에 정의된 Project 필드 변수명("project")을 적어야 합니다.
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,34 +56,22 @@ public class Project {
 
     @Builder
     public Project(Member member, String title, String genre,
-                   String styleBasePrompt, String negativePrompt, String backgroundPrompt,
-                   String loraTriggerTag, String loraModelPath,
-                   String characterAppearancePrompt, String characterOutfitPrompt) {
+                   String styleBasePrompt, String negativePrompt, String backgroundPrompt) {
         this.member = member;
         this.title = title;
         this.genre = genre;
         this.styleBasePrompt = styleBasePrompt;
         this.negativePrompt = negativePrompt;
         this.backgroundPrompt = backgroundPrompt;
-        this.loraTriggerTag = loraTriggerTag;
-        this.loraModelPath = loraModelPath;
-        this.characterAppearancePrompt = characterAppearancePrompt;
-        this.characterOutfitPrompt = characterOutfitPrompt;
     }
 
     // 부분 업데이트: null이 아닌 값만 덮어씀 — 전 필드 nullable이므로 PATCH 의미로 사용
     public void updatePartial(String title, String genre,
-                              String styleBasePrompt, String negativePrompt, String backgroundPrompt,
-                              String loraTriggerTag, String loraModelPath,
-                              String characterAppearancePrompt, String characterOutfitPrompt) {
+                              String styleBasePrompt, String negativePrompt, String backgroundPrompt) {
         if (title != null) this.title = title;
         if (genre != null) this.genre = genre;
         if (styleBasePrompt != null) this.styleBasePrompt = styleBasePrompt;
         if (negativePrompt != null) this.negativePrompt = negativePrompt;
         if (backgroundPrompt != null) this.backgroundPrompt = backgroundPrompt;
-        if (loraTriggerTag != null) this.loraTriggerTag = loraTriggerTag;
-        if (loraModelPath != null) this.loraModelPath = loraModelPath;
-        if (characterAppearancePrompt != null) this.characterAppearancePrompt = characterAppearancePrompt;
-        if (characterOutfitPrompt != null) this.characterOutfitPrompt = characterOutfitPrompt;
     }
 }

@@ -5,9 +5,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -44,6 +49,25 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
         log.warn("접근 권한 없음: {}", e.getMessage());
         return ApiResponse.error(403, e.getMessage());
+    }
+
+    /**
+     * MethodArgumentNotValidException: @Valid 검증 실패 (400 Bad Request)
+     * 필드별 에러 메시지를 data 맵에 담아 반환.
+     * 예: { "modelName": "모델명은 필수입니다." }
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Map<String, String>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
+        Map<String, String> errors = e.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid",
+                        (a, b) -> a  // 동일 필드 중복 시 첫 메시지 유지
+                ));
+        log.warn("입력값 검증 실패: {}", errors);
+        return new ApiResponse<>(false, errors, "입력값 검증 실패");
     }
 
     /**

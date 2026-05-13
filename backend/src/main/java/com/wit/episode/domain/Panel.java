@@ -1,5 +1,6 @@
 package com.wit.episode.domain;
 
+import com.wit.model.domain.CharacterModel;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,6 +33,10 @@ public class Panel {
 
     @Column(columnDefinition = "TEXT")
     private String extractedParams;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "character_model_id", nullable = true)
+    private CharacterModel characterModel;
 
     @Column(columnDefinition = "TEXT")
     private String layoutData; // 레이어별 위치, 크기 정보 (JSON 문자열)
@@ -66,6 +71,10 @@ public class Panel {
 
     public void updateExtractedParams(String extractedParams) {
         this.extractedParams = extractedParams;
+    }
+
+    public void updateCharacterModel(CharacterModel characterModel) {
+        this.characterModel = characterModel;
     }
 
     public void updateFinalPrompt(String finalPrompt) {
