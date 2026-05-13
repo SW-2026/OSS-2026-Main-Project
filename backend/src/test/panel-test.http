@@ -1,6 +1,6 @@
 ### 0. 변수 설정 (토큰을 여기에 한 번만 붙여넣으세요)
 @baseUrl = http://localhost:8080/api
-@authToken = acessToken
+@authToken = acess toekn
 @episodeId = 1
 @panelId = 1
 
