@@ -5,7 +5,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxL
 Content-Type: application/json
 
 {
-  "layoutData": "{\"layers\": [{\"id\": 2, \"x\": 50, \"y\": 50}]}",
+  "layoutData": "{\"layers\": [{\"id\": 1, \"x\": 50, \"y\": 50}]}",
   "canvasData": "{\"objects\": [{\"type\": \"circle\", \"radius\": 20, \"fill\": \"red\"}]}"
 }
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 
 ### 4. 데이터 변경 없이 재저장 시도 (중복 저장 방지 로직 테스트)
 # 1번과 동일한 데이터를 보냈을 때 새로운 버전이 생기지 않아야 성공입니다.
-POST http://localhost:8080/api/panels/2/history
+POST http://localhost:8080/api/panels/3/history
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxLCJleHAiOjE3Nzg2OTYyMDF9.0vA1LvAr8oUJorfbSVme6B4OjSoGGzUqOOP0NkRYMJw
 Content-Type: application/json
 
