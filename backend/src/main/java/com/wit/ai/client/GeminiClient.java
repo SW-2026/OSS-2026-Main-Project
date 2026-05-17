@@ -82,6 +82,7 @@ public class GeminiClient implements LlmClient {
         ObjectNode config = objectMapper.createObjectNode();
         config.put("temperature", properties.temperature());
         config.put("maxOutputTokens", properties.maxTokens());
+        config.put("responseMimeType", "application/json");
         root.set("generationConfig", config);
 
         return root;
