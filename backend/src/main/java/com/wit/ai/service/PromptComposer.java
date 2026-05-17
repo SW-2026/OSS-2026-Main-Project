@@ -3,6 +3,7 @@ package com.wit.ai.service;
 import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.ComposedPrompt;
 import com.wit.ai.dto.ScenarioPanel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class PromptComposer {
 
     private final Random random;
 
+    @Autowired
     public PromptComposer() {
         this(new Random());
     }
