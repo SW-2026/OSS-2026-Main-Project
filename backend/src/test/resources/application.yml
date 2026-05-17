@@ -9,3 +9,6 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+jwt:
+  secret: "this-is-a-very-long-and-secure-test-secret-key-for-jwt-token-generation-32bytes"
+  expiration: 86400000
