@@ -88,4 +88,8 @@ public class AiTask {
         this.errorMessage = errorMessage;
         // progressPercent 현재값 유지 — 실패 시점의 진행률 보존
     }
+
+    public void updateProgressPercent(int progressPercent) {
+        this.progressPercent = progressPercent;
+    }
 }
