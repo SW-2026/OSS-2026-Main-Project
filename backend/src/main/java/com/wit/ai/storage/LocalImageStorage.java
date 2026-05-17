@@ -1,19 +1,40 @@
 package com.wit.ai.storage;
 
+import com.wit.ai.config.StorageProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class LocalImageStorage implements ImageStorage {
 
-    // 2-13에서 본격 구현: 실제 디스크 저장 + ai.storage.local-path 사용.
-    // 본 단계는 컴파일/DI를 위한 placeholder — URL만 생성하고 byte[]는 버림.
+    private static final DateTimeFormatter DATE_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private final StorageProperties properties;
+
     @Override
     public StoredImage save(byte[] imageBytes, String category, String hint) {
-        String filename = (hint != null && !hint.isBlank() ? hint : UUID.randomUUID().toString()) + ".png";
-        String filePath = "placeholder/" + category + "/" + filename;
-        String accessUrl = "/images/" + category + "/" + filename;
+        String dateDir = LocalDate.now().format(DATE_PATTERN);
+        String filename = (hint != null && !hint.isBlank()
+                ? hint
+                : UUID.randomUUID().toString()) + ".png";
+        Path target = Paths.get(properties.localPath(), category, dateDir, filename);
+        try {
+            Files.createDirectories(target.getParent());
+            Files.write(target, imageBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("[storage] " + e.getMessage(), e);
+        }
+        String accessUrl = "/images/" + category + "/" + dateDir + "/" + filename;
+        String filePath = target.toAbsolutePath().toString();
         return new StoredImage(filePath, accessUrl);
     }
 }
