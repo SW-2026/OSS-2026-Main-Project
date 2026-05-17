@@ -11,7 +11,9 @@
       <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/dto/BackgroundAssetResponse.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/repository/BackgroundAssetRepository.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/service/BackgroundAssetService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/member/controller/MemberController.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/member/service/MemberService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/global/error/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/global/error/GlobalExceptionHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,6 +91,7 @@
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Administrator/OSS-2026-Main-Project",
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
+    "애플리케이션.WitApplication (1).executor": "Run",
     "애플리케이션.WitApplication.executor": "Run"
   }
 }]]></component>
