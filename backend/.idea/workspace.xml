@@ -4,6 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="ae093dd9-1dd1-41f2-adde-1d4c113ce813" name="Changes" comment="backend/panel 도메인 구현">
       <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-05-12T194134.200.json" beforeDir="false" />
@@ -31,6 +32,9 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/com/wit/episode/service/HistoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wit/episode/service/HistoryService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/history-test.http" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/history-test.http" afterDir="false" />
     </list>
+=======
+    <list default="true" id="ae093dd9-1dd1-41f2-adde-1d4c113ce813" name="Changes" comment="History 기능 구현 완료" />
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -96,7 +100,11 @@
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
     "Spring Boot.WitApplication.executor": "Run",
+<<<<<<< HEAD
     "git-widget-placeholder": "history",
+=======
+    "git-widget-placeholder": "feat/history",
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
     "node.js.selected.package.tslint": "(autodetect)",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
@@ -184,7 +192,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778586760796</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="History 기능 구현 완료">
+      <option name="closed" value="true" />
+      <created>1778655281588</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778655281589</updated>
+    </task>
+    <task id="LOCAL-00003" summary="History 기능 구현 완료">
+      <option name="closed" value="true" />
+      <created>1778655301531</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778655301531</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -201,6 +225,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Merge branch 'main' of https://github.com/SW-2026/OSS-2026-Main-Project into history" />
     <MESSAGE value="backend/panel 도메인 구현" />
-    <option name="LAST_COMMIT_MESSAGE" value="backend/panel 도메인 구현" />
+    <MESSAGE value="History 기능 구현 완료" />
+    <option name="LAST_COMMIT_MESSAGE" value="History 기능 구현 완료" />
   </component>
 </project>

@@ -1,7 +1,11 @@
 ### 1. 히스토리 저장 (새 버전 생성)
 # 패널 ID는 현재 DB에 존재하는 ID(예: 1)로 수정해서 테스트하세요.
 POST http://localhost:8080/api/panels/2/history
+<<<<<<< HEAD
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxLCJleHAiOjE3Nzg2OTYyMDF9.0vA1LvAr8oUJorfbSVme6B4OjSoGGzUqOOP0NkRYMJw
+=======
+Authorization: Bearer {{access_token}}
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
 Content-Type: application/json
 
 {
@@ -12,19 +16,31 @@ Content-Type: application/json
 ### 2. 히스토리 목록 조회
 # 저장된 버전 리스트와 생성 시간을 확인합니다.
 GET http://localhost:8080/api/panels/2/history
+<<<<<<< HEAD
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxLCJleHAiOjE3Nzg2OTYyMDF9.0vA1LvAr8oUJorfbSVme6B4OjSoGGzUqOOP0NkRYMJw
+=======
+Authorization: Bearer {{access_token}}
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
 Accept: application/json
 
 ### 3. 특정 버전 복원 및 신규 버전 생성
 # 위 목록 조회에서 확인한 'version' 번호를 경로에 입력하세요. (예: 1번 버전 복원)
 POST http://localhost:8080/api/panels/2/history/1/restore
+<<<<<<< HEAD
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxLCJleHAiOjE3Nzg2OTYyMDF9.0vA1LvAr8oUJorfbSVme6B4OjSoGGzUqOOP0NkRYMJw
+=======
+Authorization: Bearer {{access_token}}
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
 Content-Type: application/json
 
 ### 4. 데이터 변경 없이 재저장 시도 (중복 저장 방지 로직 테스트)
 # 1번과 동일한 데이터를 보냈을 때 새로운 버전이 생기지 않아야 성공입니다.
 POST http://localhost:8080/api/panels/3/history
+<<<<<<< HEAD
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzc4NjA5ODAxLCJleHAiOjE3Nzg2OTYyMDF9.0vA1LvAr8oUJorfbSVme6B4OjSoGGzUqOOP0NkRYMJw
+=======
+Authorization: Bearer {{access_token}}
+>>>>>>> 5985baebe21d265fbb50561ab5d21bb56f24b2d2
 Content-Type: application/json
 
 {
