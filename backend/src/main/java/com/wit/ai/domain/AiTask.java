@@ -58,11 +58,14 @@ public class AiTask {
     private LocalDateTime updatedAt;
 
     @Builder
-    public AiTask(Member member, TaskType taskType, TaskStatus status, Integer progressPercent) {
+    public AiTask(Member member, TaskType taskType, TaskStatus status,
+                  Integer progressPercent, String targetType, Long targetId) {
         this.member = member;
         this.taskType = taskType;
         this.status = status;
         this.progressPercent = progressPercent;
+        this.targetType = targetType;
+        this.targetId = targetId;
     }
 
     // ===== 상태 갱신 (외부 setter 차단, 메서드로만 전이) =====

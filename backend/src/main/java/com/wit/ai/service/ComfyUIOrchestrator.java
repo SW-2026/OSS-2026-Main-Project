@@ -6,6 +6,7 @@ import com.wit.ai.client.ComfyUIResult;
 import com.wit.ai.config.ComfyUIProperties;
 import com.wit.ai.domain.AiTask;
 import com.wit.ai.domain.CharacterAsset;
+import com.wit.ai.dto.AiPanelsGenerateRequest;
 import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.ComposedPrompt;
 import com.wit.ai.dto.ScenarioPanel;
@@ -135,5 +136,17 @@ public class ComfyUIOrchestrator {
             Thread.currentThread().interrupt();
             throw new ComfyUIClientException("Polling interrupted", e);
         }
+    }
+
+    /**
+     * 시나리오 → 10 Panel 비동기 생성.
+     * 2-12b에서 본체 구현 — ScenarioAnalyzer → 10 Panel PENDING save → 순차 ComfyUI 생성.
+     */
+    @Async
+    @Transactional
+    public void processPanelGeneration(Long taskId, Long episodeId,
+                                       AiPanelsGenerateRequest request) {
+        log.info("ComfyUIOrchestrator.processPanelGeneration stub — taskId={}, episodeId={}",
+                taskId, episodeId);
     }
 }
