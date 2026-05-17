@@ -38,6 +38,12 @@ public class Panel {
     @JoinColumn(name = "character_model_id", nullable = true)
     private CharacterModel characterModel;
 
+    @Column(name = "character_asset_id")
+    private Long characterAssetId;
+
+    @Column(name = "background_asset_id")
+    private Long backgroundAssetId;
+
     @Column(columnDefinition = "TEXT")
     private String layoutData; // 레이어별 위치, 크기 정보 (JSON 문자열)
 
@@ -52,7 +58,8 @@ public class Panel {
     @Builder
     public Panel(int panelOrder, PanelStatus status, String finalImageUrl,
                  String scenarioText, String extractedParams, String finalPrompt,
-                 Long seed, String errorMessage) {
+                 Long seed, String errorMessage,
+                 Long characterAssetId, Long backgroundAssetId) {
         this.panelOrder = panelOrder;
         this.status = status;
         this.finalImageUrl = finalImageUrl;
@@ -61,6 +68,8 @@ public class Panel {
         this.finalPrompt = finalPrompt;
         this.seed = seed;
         this.errorMessage = errorMessage;
+        this.characterAssetId = characterAssetId;
+        this.backgroundAssetId = backgroundAssetId;
     }
 
     // === 내부 파이프라인에서 사용하는 상태 갱신 메서드 (외부 API에 노출 X) ===
@@ -75,6 +84,14 @@ public class Panel {
 
     public void updateCharacterModel(CharacterModel characterModel) {
         this.characterModel = characterModel;
+    }
+
+    public void updateCharacterAssetId(Long characterAssetId) {
+        this.characterAssetId = characterAssetId;
+    }
+
+    public void updateBackgroundAssetId(Long backgroundAssetId) {
+        this.backgroundAssetId = backgroundAssetId;
     }
 
     public void updateFinalPrompt(String finalPrompt) {

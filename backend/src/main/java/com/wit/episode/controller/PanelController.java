@@ -1,12 +1,20 @@
 package com.wit.episode.controller;
 
+import com.wit.ai.dto.AiPanelsGenerateRequest;
+import com.wit.ai.dto.TaskResponse;
+import com.wit.ai.service.PanelGenerationService;
+import com.wit.auth.dto.PrincipalDetails;
 import com.wit.episode.domain.Panel;
 import com.wit.episode.dto.PanelDetailResponse;
-import com.wit.episode.dto.PanelGenerateRequest;
 import com.wit.episode.dto.PanelReorderRequest;
 import com.wit.episode.service.PanelService;
 import com.wit.global.response.ApiResponse;
+import com.wit.member.domain.Member;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,15 +26,19 @@ import java.util.stream.Collectors;
 public class PanelController {
 
     private final PanelService panelService;
+    private final PanelGenerationService panelGenerationService;
 
-    // 시나리오 바탕으로 컷 자동 생성
+    // 시나리오 바탕으로 컷 자동 생성 (비동기 → 202 Accepted + taskId 반환)
     @PostMapping("/episodes/{episodeId}/panels/generate")
-    public ApiResponse<String> generatePanels(
+    public ResponseEntity<ApiResponse<TaskResponse>> generatePanels(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable("episodeId") Long episodeId,
-            @RequestBody PanelGenerateRequest request) {
+            @Valid @RequestBody AiPanelsGenerateRequest request) {
 
-        panelService.generatePanels(episodeId, request.getScenario());
-        return ApiResponse.ok("시나리오 분석 및 이미지 생성이 시작되었습니다.");
+        Member member = principalDetails.getMember();
+        TaskResponse response =
+                panelGenerationService.generate(member, episodeId, request);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.ok(response));
     }
 
     // 컷 목록 조회
