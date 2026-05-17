@@ -22,9 +22,9 @@ public class PanelService {
     private final EpisodeRepository episodeRepository;
 
     /**
-     * 1. 시나리오 입력 -> 컷 자동 생성 (LLM 파라미터 추출 및 일괄 생성 요청)
-     * 실제 AI 연동 로직(외부 API 호출 등)은 별도 컴포넌트로 분리하는 것이 좋습니다.
+     * 1단계 placeholder. PanelGenerationService.generate() 사용. 추후 정리 트랙에서 제거 예정.
      */
+    @Deprecated
     @Transactional
     public void generatePanels(Long episodeId, String scenario) {
         Episode episode = episodeRepository.findById(episodeId)
