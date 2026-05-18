@@ -1,45 +1,32 @@
-HELP.md
-.gradle
+﻿# Java / Gradle
+.gradle/
 build/
-!backend_1순위/gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+out/
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
 
-### IntelliJ IDEA ###
-backend_1순위/.idea
+# IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+atlassian-ide-plugin.xml
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
 
-### VS Code ###
-.vscode/
-/backend_1순위/
+# Logs
+*.log
 
-
-# ���� �۾� ���� ����
+# Project Specific
 CLAUDE.md
 docs/
 .claude/
+
+# Recursive gitlink
+OSS-2026-Main-Project/
