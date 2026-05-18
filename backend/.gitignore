@@ -1,11 +1,15 @@
-HELP.md
-.gradle
+# Gradle
+.gradle/
 build/
-!backend_1?/gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### STS ###
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
 .apt_generated
 .classpath
 .factorypath
@@ -14,32 +18,26 @@ build/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-backend_1?/.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
+# VS Code
 .vscode/
-/backend_1?/
 
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
 
-# 개인 작업 도구 파일
+# Logs
+*.log
+
+# Project specific
 CLAUDE.md
 docs/
 .claude/
-/.idea/
