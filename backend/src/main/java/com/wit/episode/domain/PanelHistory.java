@@ -1,14 +1,17 @@
 package com.wit.episode.domain;
 
-import com.wit.episode.domain.Panel;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "panel_history")
+@Table(name = "history")
+@EntityListeners(AuditingEntityListener.class)
 public class PanelHistory {
 
     @Id
@@ -16,8 +19,11 @@ public class PanelHistory {
     private Long historyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "panelId", nullable = false)
+    @JoinColumn(name = "panel_id", nullable = false)
     private Panel panel;
+
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
+    private String layoutData; // 레이어별 위치, 크기 정보 (JSON 문자열)
 
     @Column(nullable = false)
     private int version;
@@ -25,13 +31,15 @@ public class PanelHistory {
     @Column(columnDefinition = "LONGTEXT", nullable = false)
     private String canvasData; // Fabric.js의 JSON 데이터
 
-    private LocalDateTime createdAt;
+    @CreatedDate
+    @Column(updatable = false, nullable = false, name = "saved_at")
+    private LocalDateTime savedAt;
 
     @Builder
-    public PanelHistory(Panel panel, int version, String canvasData) {
+    public PanelHistory(Panel panel, int version, String layoutData, String canvasData) {
         this.panel = panel;
         this.version = version;
+        this.layoutData = layoutData;
         this.canvasData = canvasData;
-        this.createdAt = LocalDateTime.now();
     }
 }

@@ -2,8 +2,8 @@ package com.wit.auth.service;
 
 import com.wit.auth.dto.PrincipalDetails;
 import com.wit.member.domain.Member;
-import com.wit.member.repository.MemberRepository; // MemberRepository가 필요합니다.
 import lombok.RequiredArgsConstructor;
+import com.wit.member.repository.MemberRepository;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
