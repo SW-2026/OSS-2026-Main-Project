@@ -18,10 +18,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * IllegalArgumentException: 잘못된 인자 전달 (400 Bad Request)
-     * 예: 중복 이메일 가입 시도, 비밀번호 불일치 등
-     */
+    // IllegalArgumentException: 잘못된 인자 전달 (400 Bad Request)
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleIllegalArgumentException(IllegalArgumentException e) {
@@ -29,10 +26,7 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(400, e.getMessage());
     }
 
-    /**
-     * EntityNotFoundException: 존재하지 않는 엔티티 조회 (404 Not Found)
-     * 예: 존재하지 않는 회원 ID로 조회 시
-     */
+    // EntityNotFoundException: 존재하지 않는 엔티티 조회 (404 Not Found)
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiResponse<Void> handleEntityNotFoundException(EntityNotFoundException e) {
@@ -40,10 +34,7 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(404, e.getMessage());
     }
 
-    /**
-     * AccessDeniedException: 인증은 되었으나 권한이 부족한 경우 (403 Forbidden)
-     * 예: 다른 회원의 리소스에 접근 시도
-     */
+    // AccessDeniedException: 인증은 되었으나 권한이 부족한 경우 (403 Forbidden)
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
@@ -51,11 +42,8 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(403, e.getMessage());
     }
 
-    /**
-     * MethodArgumentNotValidException: @Valid 검증 실패 (400 Bad Request)
-     * 필드별 에러 메시지를 data 맵에 담아 반환.
-     * 예: { "modelName": "모델명은 필수입니다." }
-     */
+    // MethodArgumentNotValidException: @Valid 검증 실패 (400 Bad Request)
+    // 필드별 에러 메시지를 data 맵에 담아 반환.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Map<String, String>> handleMethodArgumentNotValidException(
@@ -70,9 +58,7 @@ public class GlobalExceptionHandler {
         return new ApiResponse<>(false, errors, "입력값 검증 실패");
     }
 
-    /**
-     * 기타 모든 런타임 예외 (500 Internal Server Error)
-     */
+    // 기타 모든 런타임 예외 (500 Internal Server Error)
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleRuntimeException(RuntimeException e) {
