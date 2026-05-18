@@ -5,15 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0142cba3-166f-4775-a9f6-dc8424cdfd57" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/controller/BackgroundAssetController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/domain/BackgroundAsset.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/dto/BackgroundAssetRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/dto/BackgroundAssetResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/repository/BackgroundAssetRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/background_asset/service/BackgroundAssetService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/member/controller/MemberController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/member/service/MemberService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/global/error/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/OSS-2026-Main-Project/backend/src/main/java/com/wit/global/error/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.github/workflows/frontend-ci.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/backend-ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/backend-ci.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wit/WitApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wit/WitApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/controller/PanelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/controller/PanelController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/domain/Panel.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/domain/Panel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/service/PanelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wit/episode/service/PanelService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wit/global/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wit/global/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +55,7 @@
         <entry key="$PROJECT_DIR$/OSS-2026-Main-Project" value="backend" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/OSS-2026-Main-Project" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -66,7 +67,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/SW-2026/OSS-2026-Main-Project.git&quot;,
-    &quot;accountId&quot;: &quot;24ef070f-0378-47c6-85c4-00609eca8955&quot;
+    &quot;accountId&quot;: &quot;8f4c25d4-a852-42e5-897b-aa055fdeae23&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -86,16 +87,24 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "feat/github-actions",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Administrator/OSS-2026-Main-Project",
+    "last_opened_file_path": "C:/Users/richs/IdeaProjects/wit",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
+    "vue.rearranger.settings.migration": "true",
     "애플리케이션.WitApplication (1).executor": "Run",
     "애플리케이션.WitApplication.executor": "Run"
   }
 }]]></component>
-  <component name="RunManager" selected="애플리케이션.WitApplication (1)">
+  <component name="RunManager" selected="Application.WitApplication">
     <configuration name="WitApplication (1)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.wit.WitApplication" />
       <module name="com.wit.main" />
@@ -138,14 +147,15 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>false</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="애플리케이션.WitApplication (1)" />
-        <item itemvalue="애플리케이션.WitApplication" />
         <item itemvalue="Gradle.C:/Users/Administrator/OSS-2026-Main-Project/OSS-2026-Main-Project/build.gradle" />
       </list>
     </recent_temporary>
@@ -164,7 +174,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1775295289588</updated>
+      <workItem from="1779036859752" duration="46000" />
+      <workItem from="1779036976779" duration="771000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>
