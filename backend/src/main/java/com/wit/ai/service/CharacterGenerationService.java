@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +39,23 @@ public class CharacterGenerationService {
                         .build()
         );
 
-        orchestrator.processCharacterGeneration(
-                task.getTaskId(), model.getModelId(),
-                request.poseTags(), request.backgroundTags());
+        Long taskId = task.getTaskId();
+        Long modelIdForAsync = model.getModelId();
+        String poseTags = request.poseTags();
+        String backgroundTags = request.backgroundTags();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            orchestrator.processCharacterGeneration(
+                                    taskId, modelIdForAsync, poseTags, backgroundTags);
+                        }
+                    });
+        } else {
+            orchestrator.processCharacterGeneration(
+                    taskId, modelIdForAsync, poseTags, backgroundTags);
+        }
 
         return new TaskResponse(
                 task.getTaskId(),
