@@ -1,8 +1,6 @@
 package com.wit.episode.service;
 
 import com.wit.episode.domain.Episode;
-import com.wit.episode.domain.Panel;
-import com.wit.episode.domain.PanelStatus;
 import com.wit.episode.dto.*;
 import com.wit.episode.repository.EpisodeRepository;
 import com.wit.member.domain.Member;
@@ -37,14 +35,6 @@ public class EpisodeService {
                 .epNumber(request.getEpNumber().intValue())
                 .epTitle(request.getEpTitle())
                 .build();
-
-        //기본으로 10개의 panel 생성
-        for (int i = 1; i <= 10; i++) {
-            episode.addPanel(Panel.builder()
-                    .panelOrder(i)
-                    .status(PanelStatus.PENDING)
-                    .build());
-        }
 
         Episode savedEpisode = episodeRepository.save(episode);
 
