@@ -39,13 +39,14 @@ public class GeminiClient implements LlmClient {
         }
         try {
             ObjectNode body = buildRequestBody(systemPrompt, userMessage);
+            String json = objectMapper.writeValueAsString(body);
             String responseBody = restClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .path("/v1beta/models/{model}:generateContent")
                             .queryParam("key", properties.apiKey())
                             .build(properties.model()))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
+                    .body(json)
                     .retrieve()
                     .body(String.class);
 
