@@ -13,7 +13,7 @@ interface AIImagePanelProps {
   promptText: string;
   onPromptChange: (v: string) => void;
   isGenerating: boolean;
-  onGenerate: (prompt: string) => void;
+  onGenerate: (prompt: string, options?: { count?: number; width?: number; height?: number }) => void;
   generatedImages: AIGeneratedImage[];
   onApplyImage: (img: AIGeneratedImage) => void;
   onVectorize: (img: AIGeneratedImage) => void;
@@ -23,25 +23,21 @@ interface AIImagePanelProps {
   onImageLoad?: (id: string) => void;
 }
 
-const STYLE_PRESETS = [
-  { id: "webtoon", label: "웹툰", prompt: "Korean webtoon style, clean line art, manga" },
-  { id: "sketch", label: "스케치", prompt: "pencil sketch, rough lines, hand drawn" },
-  { id: "ink", label: "잉크", prompt: "ink drawing, bold lines, black and white" },
-  { id: "watercolor", label: "수채화", prompt: "watercolor style, soft colors, artistic" },
-  { id: "chibi", label: "치비", prompt: "chibi style, cute, small character, big eyes" },
-  { id: "realistic", label: "사실적", prompt: "semi-realistic, detailed, high quality" },
+const RATIOS = [
+  { id: "portrait", label: "9:16 세로", width: 1024, height: 1536, icon: "ri-smartphone-line" },
+  { id: "square", label: "1:1 정사각", width: 1024, height: 1024, icon: "ri-shape-line" },
+  { id: "landscape", label: "16:9 가로", width: 1536, height: 1024, icon: "ri-tv-line" },
 ];
 
 const QUICK_PROMPTS = [
-  { label: "소녀 캐릭터", prompt: "Korean webtoon style girl character, school uniform, expressive eyes, clean line art, white background" },
-  { label: "소년 캐릭터", prompt: "Korean webtoon style boy character, casual clothes, dynamic pose, manga style, white background" },
-  { label: "교실 배경", prompt: "Korean webtoon classroom background, desks and chairs, window light, clean line art, detailed" },
-  { label: "도시 배경", prompt: "Korean webtoon city street background, buildings, night scene, detailed line art" },
-  { label: "감정 표현", prompt: "Korean webtoon character close up face, surprised expression, manga style, expressive" },
-  { label: "액션 씬", prompt: "Korean webtoon action scene, dynamic movement, speed lines, dramatic angle" },
+  { label: "소녀 캐릭터", prompt: "beautiful girl character, expressive eyes, detailed face, full body" },
+  { label: "소년 캐릭터", prompt: "handsome boy character, dynamic pose, casual outfit, confident expression" },
+  { label: "교실 배경", prompt: "classroom interior, desks and chairs, window light, school atmosphere" },
+  { label: "도시 배경", prompt: "city street scene, buildings, neon lights, night atmosphere, detailed" },
+  { label: "감정 표현", prompt: "character close up face, emotional expression, dramatic lighting, detailed eyes" },
+  { label: "액션 씬", prompt: "dynamic action scene, speed lines, dramatic angle, intense movement" },
 ];
 
-// 개별 이미지에 재시도 로직이 들어간 LazyImage 컴포넌트
 function LazyImage({
   src,
   alt,
@@ -114,24 +110,19 @@ export default function AIImagePanel({
   onImageLoad,
 }: AIImagePanelProps) {
   const [activeSubTab, setActiveSubTab] = useState<"generate" | "upload" | "history">("generate");
-  const [selectedStyle, setSelectedStyle] = useState("webtoon");
+  const [selectedRatio, setSelectedRatio] = useState("portrait");
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleStyleSelect = (styleId: string, stylePrompt: string) => {
-    setSelectedStyle(styleId);
-    const basePrompt = promptText.replace(/,?\s*(Korean webtoon style|pencil sketch|ink drawing|watercolor style|chibi style|semi-realistic)[^,]*/gi, "").trim();
-    onPromptChange(basePrompt ? `${stylePrompt}, ${basePrompt}` : stylePrompt);
-  };
 
   const handleQuickPrompt = (prompt: string) => {
     onPromptChange(prompt);
   };
 
   const handleGenerate = () => {
-    if (!promptText.trim()) return;
-    onGenerate(promptText);
+    if (!promptText.trim() || isGenerating) return;
+    const ratio = RATIOS.find((r) => r.id === selectedRatio)!;
+    onGenerate(promptText.trim(), { count: 4, width: ratio.width, height: ratio.height });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,12 +130,15 @@ export default function AIImagePanel({
     if (file) onUploadImage(file);
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) onUploadImage(file);
-  }, [onUploadImage]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file && file.type.startsWith("image/")) onUploadImage(file);
+    },
+    [onUploadImage]
+  );
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -153,17 +147,24 @@ export default function AIImagePanel({
 
   const handleDragLeave = () => setIsDragOver(false);
 
+  // 최신 생성된 4개 = "현재 배치"
+  const generatedAll = generatedImages.filter((img) => img.type === "generated");
+  const latestBatch = generatedAll.slice(0, 4);
+  const previousResults = generatedAll.slice(4);
+
   const selectedImage = generatedImages.find((img) => img.id === selectedImageId);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* 서브 탭 */}
       <div className="flex border-b border-[#2a2a2a] shrink-0">
-        {([
-          { key: "generate", label: "생성", icon: "ri-sparkling-line" },
-          { key: "upload", label: "업로드", icon: "ri-upload-2-line" },
-          { key: "history", label: "히스토리", icon: "ri-history-line" },
-        ] as const).map((tab) => (
+        {(
+          [
+            { key: "generate", label: "AI 생성", icon: "ri-sparkling-line" },
+            { key: "upload", label: "업로드", icon: "ri-upload-2-line" },
+            { key: "history", label: "히스토리", icon: "ri-history-line" },
+          ] as const
+        ).map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveSubTab(tab.key)}
@@ -179,26 +180,29 @@ export default function AIImagePanel({
         ))}
       </div>
 
-      {/* 생성 탭 */}
+      {/* ─── 생성 탭 ─── */}
       {activeSubTab === "generate" && (
         <div className="flex flex-col flex-1 overflow-y-auto p-3 gap-3">
-          {/* 스타일 선택 */}
+          {/* 프롬프트 입력 영역 */}
           <div>
-            <p className="text-[9px] text-[#555] uppercase tracking-wider font-medium mb-2">스타일</p>
-            <div className="grid grid-cols-3 gap-1">
-              {STYLE_PRESETS.map((style) => (
-                <button
-                  key={style.id}
-                  onClick={() => handleStyleSelect(style.id, style.prompt)}
-                  className={`py-1.5 rounded-lg text-[10px] transition-all cursor-pointer whitespace-nowrap border ${
-                    selectedStyle === style.id
-                      ? "bg-orange-500/20 text-orange-400 border-orange-500/40"
-                      : "bg-[#1e1e1e] text-[#888] border-[#2a2a2a] hover:border-[#444]"
-                  }`}
-                >
-                  {style.label}
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[9px] text-[#555] uppercase tracking-wider font-medium">프롬프트</label>
+              <button
+                onClick={() => onPromptChange("")}
+                className="text-[9px] text-[#555] hover:text-[#888] cursor-pointer whitespace-nowrap"
+              >
+                초기화
+              </button>
+            </div>
+            <textarea
+              value={promptText}
+              onChange={(e) => onPromptChange(e.target.value)}
+              placeholder="원하는 장면을 자세히 설명해보세요. 예: 교실 창가에 서 있는 소녀, 슬픈 표정, 저녁 노을..."
+              className="w-full h-20 bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg p-2.5 text-xs text-[#ccc] placeholder-[#444] resize-none outline-none focus:border-orange-500/50 transition-colors leading-relaxed"
+              maxLength={500}
+            />
+            <div className="flex justify-end mt-0.5">
+              <span className="text-[9px] text-[#555]">{promptText.length}/500</span>
             </div>
           </div>
 
@@ -218,105 +222,203 @@ export default function AIImagePanel({
             </div>
           </div>
 
-          {/* 프롬프트 입력 */}
+          {/* 비율 선택 */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[9px] text-[#555] uppercase tracking-wider font-medium">프롬프트</label>
-              <button
-                onClick={() => onPromptChange("")}
-                className="text-[9px] text-[#555] hover:text-[#888] cursor-pointer whitespace-nowrap"
-              >
-                초기화
-              </button>
+            <p className="text-[9px] text-[#555] uppercase tracking-wider font-medium mb-2">비율</p>
+            <div className="flex gap-1.5">
+              {RATIOS.map((ratio) => (
+                <button
+                  key={ratio.id}
+                  onClick={() => setSelectedRatio(ratio.id)}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer whitespace-nowrap border ${
+                    selectedRatio === ratio.id
+                      ? "bg-orange-500/15 text-orange-400 border-orange-500/40"
+                      : "bg-[#1e1e1e] text-[#888] border-[#2a2a2a] hover:border-[#444]"
+                  }`}
+                >
+                  <i className={`${ratio.icon} text-xs`} />
+                  {ratio.label}
+                </button>
+              ))}
             </div>
-            <textarea
-              value={promptText}
-              onChange={(e) => onPromptChange(e.target.value)}
-              placeholder="예: Korean webtoon style girl, school uniform, surprised expression, clean line art"
-              className="w-full h-20 bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg p-2.5 text-xs text-[#ccc] placeholder-[#444] resize-none outline-none focus:border-orange-500/50 transition-colors leading-relaxed"
-              maxLength={500}
-            />
-            <div className="flex justify-end mt-0.5">
-              <span className="text-[9px] text-[#555]">{promptText.length}/500</span>
-            </div>
+          </div>
+
+          {/* 웹툰 스타일 고정 배지 */}
+          <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <i className="ri-book-open-line text-orange-400 text-xs" />
+            <span className="text-[10px] text-orange-400 font-medium">웹툰 스타일 자동 적용</span>
+            <span className="text-[9px] text-[#666] ml-auto">Korean webtoon / manhwa</span>
           </div>
 
           {/* 생성 버튼 */}
           <button
             onClick={handleGenerate}
             disabled={isGenerating || !promptText.trim()}
-            className="w-full h-9 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
+            className="w-full h-10 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap shadow-[0_0_20px_rgba(249,115,22,0.25)]"
           >
             {isGenerating ? (
               <>
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                생성 중...
+                이미지 생성 중...
               </>
             ) : (
               <>
-                <i className="ri-sparkling-line" />
-                AI 이미지 생성
+                <i className="ri-sparkling-fill" />
+                이미지 4개 생성
               </>
             )}
           </button>
 
-          {/* 최근 생성 이미지 미리보기 */}
-          {generatedImages.filter((img) => img.type === "generated").length > 0 && (
+          {/* 방금 생성된 결과 — 2x2 그리드 */}
+          {latestBatch.length > 0 && (
             <div>
-              <p className="text-[9px] text-[#555] uppercase tracking-wider font-medium mb-2">최근 생성</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[9px] text-[#555] uppercase tracking-wider font-medium">생성 결과</p>
+                <span className="text-[9px] text-[#555]">{latestBatch.filter((i) => !i.isLoading).length}/4</span>
+              </div>
               <div className="grid grid-cols-2 gap-1.5">
-                {generatedImages
-                  .filter((img) => img.type === "generated")
-                  .slice(0, 4)
-                  .map((img) => (
-                    <div
-                      key={img.id}
-                      className={`relative rounded-lg overflow-hidden border cursor-pointer group transition-all ${
-                        selectedImageId === img.id
-                          ? "border-orange-500"
-                          : "border-[#2a2a2a] hover:border-[#444]"
-                      }`}
-                      onClick={() => setSelectedImageId(img.id === selectedImageId ? null : img.id)}
-                    >
-                      <div className="w-full aspect-square bg-[#1a1a1a]">
-                        <LazyImage
-                          src={img.url}
-                          alt={img.prompt}
-                          className="w-full h-full object-cover"
-                          onLoad={() => onImageLoad?.(img.id)}
-                          onErrorDone={() => onImageLoad?.(img.id)}
-                          isLoading={img.isLoading}
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                {latestBatch.map((img) => (
+                  <div
+                    key={img.id}
+                    className={`relative rounded-xl overflow-hidden border cursor-pointer group transition-all ${
+                      selectedImageId === img.id
+                        ? "border-orange-500 ring-1 ring-orange-500/30"
+                        : "border-[#2a2a2a] hover:border-[#444]"
+                    }`}
+                    onClick={() =>
+                      setSelectedImageId(img.id === selectedImageId ? null : img.id)
+                    }
+                  >
+                    <div className="w-full aspect-[3/4] bg-[#1a1a1a]">
+                      <LazyImage
+                        src={img.url}
+                        alt={img.prompt}
+                        className="w-full h-full object-cover"
+                        onLoad={() => onImageLoad?.(img.id)}
+                        onErrorDone={() => onImageLoad?.(img.id)}
+                        isLoading={img.isLoading}
+                      />
+                    </div>
+
+                    {/* 호버 액션 오버레이 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onApplyImage(img);
+                        }}
+                        className="w-full px-2 py-1 bg-orange-500 text-white text-[9px] rounded-md cursor-pointer whitespace-nowrap font-semibold flex items-center justify-center gap-1"
+                      >
+                        <i className="ri-image-add-line" />
+                        캔버스 적용
+                      </button>
+                      <div className="flex gap-1">
                         <button
-                          onClick={(e) => { e.stopPropagation(); onEditCut(img); }}
-                          className="w-full px-2 py-1 bg-orange-500 text-white text-[9px] rounded cursor-pointer whitespace-nowrap font-semibold flex items-center justify-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditCut(img);
+                          }}
+                          className="flex-1 px-2 py-1 bg-[#333] text-[#ddd] text-[9px] rounded-md cursor-pointer whitespace-nowrap flex items-center justify-center gap-1"
                         >
-                          <i className="ri-edit-2-line" />컷 편집
+                          <i className="ri-edit-2-line" />
+                          편집
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); onApplyImage(img); }}
-                          className="w-full px-2 py-0.5 bg-[#444] text-[#ddd] text-[9px] rounded cursor-pointer whitespace-nowrap flex items-center justify-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onVectorize(img);
+                          }}
+                          disabled={isVectorizing}
+                          className="flex-1 px-2 py-1 bg-[#222] text-[#aaa] text-[9px] rounded-md cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-1"
                         >
-                          <i className="ri-image-add-line" />캔버스 적용
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onVectorize(img); }}
-                          className="w-full px-2 py-0.5 bg-[#333] text-[#aaa] text-[9px] rounded cursor-pointer whitespace-nowrap flex items-center justify-center gap-1"
-                        >
-                          <i className="ri-node-tree" />선 벡터화
+                          <i className="ri-node-tree" />
+                          {isVectorizing ? "처리 중" : "벡터화"}
                         </button>
                       </div>
                     </div>
-                  ))}
+
+                    {/* 선택 표시 배지 */}
+                    {selectedImageId === img.id && (
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                        <i className="ri-check-line text-white text-xs" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* 선택된 이미지 일괄 액션 */}
+              {selectedImage && (
+                <div className="flex gap-1.5 mt-2">
+                  <button
+                    onClick={() => onApplyImage(selectedImage)}
+                    className="flex-1 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[10px] rounded-lg cursor-pointer whitespace-nowrap font-semibold flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <i className="ri-image-add-line" />
+                    선택 이미지 적용
+                  </button>
+                  <button
+                    onClick={() => onEditCut(selectedImage)}
+                    className="px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#333] text-[#ccc] text-[10px] rounded-lg cursor-pointer whitespace-nowrap flex items-center gap-1 transition-colors"
+                  >
+                    <i className="ri-edit-2-line" />
+                    편집
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 이전 생성 결과 — 작게 */}
+          {previousResults.length > 0 && (
+            <div>
+              <p className="text-[9px] text-[#555] uppercase tracking-wider font-medium mb-2">이전 결과</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {previousResults.slice(0, 4).map((img) => (
+                  <div
+                    key={img.id}
+                    className="relative rounded-lg overflow-hidden border border-[#2a2a2a] hover:border-[#444] cursor-pointer group transition-all"
+                    onClick={() => setSelectedImageId(img.id === selectedImageId ? null : img.id)}
+                  >
+                    <div className="w-full aspect-square bg-[#1a1a1a]">
+                      <LazyImage
+                        src={img.url}
+                        alt={img.prompt}
+                        className="w-full h-full object-cover"
+                        onLoad={() => onImageLoad?.(img.id)}
+                        onErrorDone={() => onImageLoad?.(img.id)}
+                        isLoading={img.isLoading}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 p-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onApplyImage(img);
+                        }}
+                        className="px-2 py-0.5 bg-orange-500 text-white text-[9px] rounded cursor-pointer whitespace-nowrap font-semibold"
+                      >
+                        적용
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onVectorize(img);
+                        }}
+                        className="px-2 py-0.5 bg-[#333] text-[#ddd] text-[9px] rounded cursor-pointer whitespace-nowrap"
+                      >
+                        벡터화
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* 업로드 탭 */}
+      {/* ─── 업로드 탭 ─── */}
       {activeSubTab === "upload" && (
         <div className="flex flex-col flex-1 overflow-y-auto p-3 gap-3">
           <div
@@ -393,20 +495,23 @@ export default function AIImagePanel({
                           onClick={() => onEditCut(img)}
                           className="w-full px-2 py-1 bg-orange-500 text-white text-[9px] rounded cursor-pointer whitespace-nowrap font-semibold flex items-center justify-center gap-1"
                         >
-                          <i className="ri-edit-2-line" />컷 편집
+                          <i className="ri-edit-2-line" />
+                          컷 편집
                         </button>
                         <button
                           onClick={() => onApplyImage(img)}
                           className="w-full px-2 py-0.5 bg-[#444] text-[#ddd] text-[9px] rounded cursor-pointer whitespace-nowrap flex items-center justify-center gap-1"
                         >
-                          <i className="ri-image-add-line" />캔버스 적용
+                          <i className="ri-image-add-line" />
+                          캔버스 적용
                         </button>
                         <button
                           onClick={() => onVectorize(img)}
                           disabled={isVectorizing}
                           className="w-full px-2 py-0.5 bg-[#333] text-[#aaa] text-[9px] rounded cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-1"
                         >
-                          <i className="ri-node-tree" />{isVectorizing ? "처리 중..." : "선 벡터화"}
+                          <i className="ri-node-tree" />
+                          {isVectorizing ? "처리 중..." : "선 벡터화"}
                         </button>
                       </div>
                     </div>
@@ -417,7 +522,7 @@ export default function AIImagePanel({
         </div>
       )}
 
-      {/* 히스토리 탭 */}
+      {/* ─── 히스토리 탭 ─── */}
       {activeSubTab === "history" && (
         <div className="flex flex-col flex-1 overflow-y-auto p-3 gap-2">
           {generatedImages.length === 0 ? (
@@ -443,23 +548,31 @@ export default function AIImagePanel({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 mb-0.5">
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${img.type === "generated" ? "bg-orange-500/20 text-orange-400" : "bg-[#333] text-[#888]"}`}>
+                    <span
+                      className={`text-[8px] px-1.5 py-0.5 rounded-full ${
+                        img.type === "generated"
+                          ? "bg-orange-500/20 text-orange-400"
+                          : "bg-[#333] text-[#888]"
+                      }`}
+                    >
                       {img.type === "generated" ? "AI 생성" : "업로드"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#888] truncate leading-relaxed">{img.prompt || "업로드된 이미지"}</p>
+                  <p className="text-[10px] text-[#888] truncate leading-relaxed">
+                    {img.prompt || "업로드된 이미지"}
+                  </p>
                   <div className="flex gap-1 mt-1 flex-wrap">
-                    <button
-                      onClick={() => onEditCut(img)}
-                      className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] rounded cursor-pointer whitespace-nowrap hover:bg-orange-600 transition-colors font-semibold"
-                    >
-                      컷 편집
-                    </button>
                     <button
                       onClick={() => onApplyImage(img)}
                       className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 text-[9px] rounded cursor-pointer whitespace-nowrap hover:bg-orange-500/30 transition-colors"
                     >
                       적용
+                    </button>
+                    <button
+                      onClick={() => onEditCut(img)}
+                      className="px-1.5 py-0.5 bg-[#222] text-[#888] text-[9px] rounded cursor-pointer whitespace-nowrap hover:bg-[#2a2a2a] transition-colors"
+                    >
+                      편집
                     </button>
                     <button
                       onClick={() => onVectorize(img)}

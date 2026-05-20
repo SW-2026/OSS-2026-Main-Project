@@ -1,9 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import {
-  mockLayers,
-  mockCuts,
-  mockEpisodes,
-} from "../mocks/webtoon";
+import { supabase } from "@/lib/supabase";
+import api from "@/lib/api";
 import type { BalloonItem, BalloonShape } from "@/pages/home/components/BalloonPanel";
 import type { AIGeneratedImage } from "@/pages/home/components/AIImagePanel";
 
@@ -27,6 +24,15 @@ export interface Layer {
   opacity: number;
   blendMode: string;
 }
+
+const defaultLayers: Layer[] = [
+  { id: "layer-bg", name: "배경", type: "background", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+  { id: "layer-sketch", name: "스케치", type: "sketch", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+  { id: "layer-lineart", name: "선화", type: "lineart", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+  { id: "layer-color", name: "색칠", type: "color", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+  { id: "layer-effect", name: "효과", type: "effect", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+  { id: "layer-dialogue", name: "대사", type: "dialogue", visible: true, locked: false, opacity: 100, blendMode: "normal" },
+];
 
 export interface Cut {
   id: string;
@@ -57,28 +63,29 @@ export interface Stroke {
   episodeId: string;
   cutId: string;
   layerId?: string;
-  // 선택/이동용 바운딩 박스
   bbox: { x: number; y: number; w: number; h: number };
 }
 
 export function useEditorState(initialProjectId?: string | null) {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(initialProjectId ?? null);
 
-  const [layers, setLayers] = useState<Layer[]>(mockLayers);
+  const [layers, setLayers] = useState<Layer[]>(defaultLayers);
   const [selectedLayerId, setSelectedLayerId] = useState<string>("layer-lineart");
   const selectedLayerIdRef = useRef(selectedLayerId);
   useEffect(() => { selectedLayerIdRef.current = selectedLayerId; }, [selectedLayerId]);
-  const [cuts, setCuts] = useState<Cut[]>(mockCuts);
+
+  const [cuts, setCuts] = useState<Cut[]>([]);
   const cutsRef = useRef(cuts);
   useEffect(() => { cutsRef.current = cuts; }, [cuts]);
 
-  const [episodes, setEpisodes] = useState<Episode[]>(mockEpisodes);
-  const [activeEpisodeId, setActiveEpisodeId] = useState("ep-1");
-  const [activeCutId, setActiveCutId] = useState("cut-2");
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [activeEpisodeId, setActiveEpisodeId] = useState("");
+  const [activeCutId, setActiveCutId] = useState("");
   const activeEpisodeIdRef = useRef(activeEpisodeId);
   const activeCutIdRef = useRef(activeCutId);
   useEffect(() => { activeEpisodeIdRef.current = activeEpisodeId; }, [activeEpisodeId]);
   useEffect(() => { activeCutIdRef.current = activeCutId; }, [activeCutId]);
+
   const [zoom, setZoom] = useState(75);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
 
@@ -105,6 +112,177 @@ export function useEditorState(initialProjectId?: string | null) {
   const [balloonBorderColor, setBalloonBorderColor] = useState("#000000");
   const [balloonBgColor, setBalloonBgColor] = useState("#ffffff");
   const [balloonTextColor, setBalloonTextColor] = useState("#000000");
+
+  // Stroke 데이터
+  const [allStrokes, setAllStrokes] = useState<Stroke[]>([]);
+  const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([]);
+
+  // Undo/Redo
+  const [undoStack, setUndoStack] = useState<Stroke[][]>([]);
+  const [redoStack, setRedoStack] = useState<Stroke[][]>([]);
+  const allStrokesRef = useRef(allStrokes);
+  useEffect(() => { allStrokesRef.current = allStrokes; }, [allStrokes]);
+
+  // 프로젝트 데이터 로드
+  const [isLoadingProject, setIsLoadingProject] = useState(false);
+
+  useEffect(() => {
+    if (!initialProjectId) {
+      // 기본 에피소드/컷 생성 (데모용)
+      const demoEpId = `ep-${Date.now()}`;
+      const demoCutId = `cut-${Date.now() + 1}`;
+      setEpisodes([{ id: demoEpId, title: "에피소드 1", isActive: true }]);
+      setCuts([{ id: demoCutId, index: 1, label: "컷 1", prompt: "", thumbnail: "", isActive: true, isGenerated: false, episodeId: demoEpId }]);
+      setActiveEpisodeId(demoEpId);
+      setActiveCutId(demoCutId);
+      return;
+    }
+
+    setIsLoadingProject(true);
+    setActiveProjectId(initialProjectId);
+
+    const loadProject = async () => {
+      try {
+        // 에피소드 로드 (Java API)
+        const epRes = await api.get(`/api/projects/${initialProjectId}/episodes`);
+        const epList = epRes.data?.data ?? [];
+        const loadedEpisodes: Episode[] = epList.map((e: any) => ({
+          id: String(e.episodeId),
+          title: e.epTitle,
+          isActive: false,
+        }));
+
+        // 컷(패널) 로드 — 각 에피소드별 상세 조회
+        const loadedCuts: Cut[] = [];
+        if (loadedEpisodes.length > 0) {
+          const panelResList = await Promise.all(
+            loadedEpisodes.map((ep) => api.get(`/api/episodes/${ep.id}`).catch(() => null))
+          );
+          panelResList.forEach((res, idx) => {
+            if (!res) return;
+            const panels = res.data?.data?.panels ?? [];
+            const epId = loadedEpisodes[idx].id;
+            panels.forEach((p: any) => {
+              loadedCuts.push({
+                id: String(p.panelId),
+                index: p.panelOrder,
+                label: `컷 ${p.panelOrder}`,
+                prompt: "",
+                thumbnail: p.finalImageUrl || "",
+                isActive: false,
+                isGenerated: p.status === "COMPLETED",
+                episodeId: epId,
+              });
+            });
+          });
+        }
+
+        if (loadedEpisodes.length === 0) {
+          // 에피소드가 없으면 Java API로 기본 생성 시도
+          try {
+            const createRes = await api.post(`/api/projects/${initialProjectId}/episodes`, { epNumber: 1, epTitle: "에피소드 1" });
+            if (createRes.data?.success) {
+              const ep = createRes.data.data;
+              const newEpId = String(ep.episodeId);
+              const newCutId = `cut-${Date.now()}`;
+              setEpisodes([{ id: newEpId, title: "에피소드 1", isActive: true }]);
+              setCuts([{ id: newCutId, index: 1, label: "컷 1", prompt: "", thumbnail: "", isActive: true, isGenerated: false, episodeId: newEpId }]);
+              setActiveEpisodeId(newEpId);
+              setActiveCutId(newCutId);
+              return;
+            }
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error("[useEditorState] 기본 에피소드 생성 실패:", err);
+          }
+          // API 실패 시 로컬 fallback
+          const newEpId = `ep-${Date.now()}`;
+          const newCutId = `cut-${Date.now() + 1}`;
+          setEpisodes([{ id: newEpId, title: "에피소드 1", isActive: true }]);
+          setCuts([{ id: newCutId, index: 1, label: "컷 1", prompt: "", thumbnail: "", isActive: true, isGenerated: false, episodeId: newEpId }]);
+          setActiveEpisodeId(newEpId);
+          setActiveCutId(newCutId);
+        } else {
+          const firstEp = loadedEpisodes[0];
+          const firstEpId = firstEp.id;
+          const epCuts = loadedCuts.filter((c) => c.episodeId === firstEpId);
+          const firstCut = epCuts[0];
+
+          setEpisodes(loadedEpisodes.map((e, i) => ({ ...e, isActive: i === 0 })));
+          setCuts(loadedCuts);
+          setActiveEpisodeId(firstEpId);
+          setActiveCutId(firstCut?.id ?? "");
+
+          // 첫 컷 데이터 로드
+          if (firstCut) {
+            await loadCutData(firstCut.id);
+          }
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[useEditorState] 프로젝트 로드 실패:", err);
+      } finally {
+        setIsLoadingProject(false);
+        setSaveStatus("saved");
+      }
+    };
+
+    // 상태 초기화 후 로드
+    setLayers(defaultLayers);
+    setSelectedLayerId("layer-lineart");
+    setBalloons([]);
+    setSelectedBalloonId(null);
+    setCanvasImages([]);
+    setSelectedStrokeIds([]);
+    setAllStrokes([]);
+    setUndoStack([]);
+    setRedoStack([]);
+    setGeneratedImages([]);
+    setPromptText("");
+
+    loadProject();
+  }, [initialProjectId]);
+
+  // 컷 데이터 로드
+  const loadCutData = async (cutId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("cut_data")
+        .select("*")
+        .eq("cut_id", cutId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return;
+
+      if (data.strokes) {
+        const parsedStrokes = Array.isArray(data.strokes) ? data.strokes : [];
+        setAllStrokes((prev) => {
+          const otherCuts = prev.filter((s) => s.cutId !== cutId);
+          return [...otherCuts, ...parsedStrokes];
+        });
+      }
+      if (data.balloons) {
+        setBalloons(Array.isArray(data.balloons) ? data.balloons : []);
+      }
+      if (data.canvas_images) {
+        setCanvasImages(Array.isArray(data.canvas_images) ? data.canvas_images : []);
+      }
+      if (data.layers) {
+        setLayers(Array.isArray(data.layers) && data.layers.length > 0 ? data.layers : defaultLayers);
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[useEditorState] 컷 데이터 로드 실패:", err);
+    }
+  };
+
+  // 컷 변경 시 데이터 로드
+  useEffect(() => {
+    if (!activeCutId) return;
+    loadCutData(activeCutId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCutId]);
 
   const addBalloon = useCallback((x: number, y: number): string => {
     const id = `balloon-${Date.now()}`;
@@ -156,30 +334,22 @@ export function useEditorState(initialProjectId?: string | null) {
   }, []);
 
   const toggleLayerVisible = useCallback((id: string) => {
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l))
-    );
+    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)));
     setSaveStatus("unsaved");
   }, []);
 
   const toggleLayerLocked = useCallback((id: string) => {
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, locked: !l.locked } : l))
-    );
+    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, locked: !l.locked } : l)));
     setSaveStatus("unsaved");
   }, []);
 
   const updateLayerOpacity = useCallback((id: string, opacity: number) => {
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, opacity } : l))
-    );
+    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, opacity } : l)));
     setSaveStatus("unsaved");
   }, []);
 
   const updateLayerBlendMode = useCallback((id: string, blendMode: string) => {
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, blendMode } : l))
-    );
+    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, blendMode } : l)));
     setSaveStatus("unsaved");
   }, []);
 
@@ -214,10 +384,7 @@ export function useEditorState(initialProjectId?: string | null) {
 
   const setActiveCut = useCallback((id: string) => {
     setActiveCutId(id);
-    setCuts((prev) =>
-      prev.map((c) => ({ ...c, isActive: c.id === id }))
-    );
-    // 컷 변경 시 말풍선/캔버스 이미지 초기화 (각 컷별 데이터)
+    setCuts((prev) => prev.map((c) => ({ ...c, isActive: c.id === id })));
     setBalloons([]);
     setSelectedBalloonId(null);
     setCanvasImages([]);
@@ -226,68 +393,78 @@ export function useEditorState(initialProjectId?: string | null) {
 
   const handleSelectEpisode = (episodeId: string) => {
     setActiveEpisodeId(episodeId);
-    setEpisodes((prev) =>
-      prev.map((ep) => ({ ...ep, isActive: ep.id === episodeId }))
-    );
-    // 에피소드 변경 시 말풍선/캔버스 이미지/선택 초기화
+    setEpisodes((prev) => prev.map((ep) => ({ ...ep, isActive: ep.id === episodeId })));
     setBalloons([]);
     setSelectedBalloonId(null);
     setCanvasImages([]);
     setSelectedStrokeIds([]);
-    // 해당 에피소드의 첫 번째 컷으로 자동 이동 (항상 최신 cuts 참조)
     const currentCuts = cutsRef.current;
     const episodeCuts = currentCuts.filter((c) => c.episodeId === episodeId);
     const firstCut = episodeCuts.find((c) => c.isGenerated) || episodeCuts[0];
     if (firstCut) {
       setActiveCutId(firstCut.id);
-      setCuts((prev) =>
-        prev.map((c) => ({ ...c, isActive: c.id === firstCut.id }))
-      );
+      setCuts((prev) => prev.map((c) => ({ ...c, isActive: c.id === firstCut.id })));
     }
   };
 
-  const handleGenerate = useCallback(async (prompt: string) => {
+  const handleGenerate = useCallback(async (prompt: string, options?: { count?: number; width?: number; height?: number }) => {
     if (!prompt.trim()) return;
     setIsGenerating(true);
 
-    const seq = Date.now();
+    const count = options?.count ?? 1;
+    const width = options?.width ?? 1024;
+    const height = options?.height ?? 1536;
+    const baseSeq = Date.now();
     const cleanPrompt = prompt.trim();
-    const finalPrompt = `${cleanPrompt}, high quality webtoon manga comic illustration, detailed artwork`;
-    // Pollinations.ai 클라이언트 직접 호출 — 이미지 생성 API
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=512&height=768&seed=${seq % 100000}&nologo=true`;
 
-    const newImage: AIGeneratedImage = {
-      id: `gen-${seq}`,
-      url: imageUrl,
-      prompt: cleanPrompt,
-      type: "generated",
-      timestamp: seq,
-      isLoading: true,
-    };
-    setGeneratedImages((prev) => [newImage, ...prev]);
+    // 웹툰 전용 고품질 프롬프트 엔지니어링
+    const webtoonSuffix =
+      "masterpiece, best quality, Korean webtoon manhwa style, digital comic art, " +
+      "clean bold line art, vibrant flat colors, cel shading, professional panel composition, " +
+      "detailed expressive eyes, anime-influenced character design, high resolution, crisp edges";
 
-    // 이미지를 fetch로 직접 다운로드 후 로컬 Blob URL로 변환 — CORS/재시도 문제 해결
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60초 타임아웃
-      const response = await fetch(imageUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      const localUrl = URL.createObjectURL(blob);
-      setGeneratedImages((prev) =>
-        prev.map((img) => img.id === newImage.id ? { ...img, url: localUrl, isLoading: false } : img)
-      );
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[AI Generate] fetch failed, falling back to direct URL:", err);
-      // fetch 실패해도 원격 URL 그대로 유지 → LazyImage onError 재시도로 fallback
-      setGeneratedImages((prev) =>
-        prev.map((img) => img.id === newImage.id ? { ...img, isLoading: false } : img)
-      );
-    } finally {
-      setIsGenerating(false);
+    const finalPrompt = `${cleanPrompt}, ${webtoonSuffix}`;
+
+    const newImages: AIGeneratedImage[] = [];
+    for (let i = 0; i < count; i++) {
+      const seq = baseSeq + i;
+      const seed = (seq % 100000) + i * 137;
+      // Pollinations URL: nologo + noenhance=false (품질 향상)
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true&noenhance=false`;
+      newImages.push({
+        id: `gen-${seq}`,
+        url: imageUrl,
+        prompt: cleanPrompt,
+        type: "generated",
+        timestamp: seq,
+        isLoading: true,
+      });
     }
+    setGeneratedImages((prev) => [...newImages, ...prev]);
+
+    // 순차적으로 이미지 로드 확인 (blob 변환 제거 — URL 직접 사용해 품질 손실 방지)
+    for (let i = 0; i < newImages.length; i++) {
+      const img = newImages[i];
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        const response = await fetch(img.url, { signal: controller.signal, method: "HEAD" });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // 이미지가 준비되면 isLoading false로 — URL은 그대로 유지
+        setGeneratedImages((prev) =>
+          prev.map((item) => item.id === img.id ? { ...item, isLoading: false } : item)
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[AI Generate] fetch failed:", err);
+        setGeneratedImages((prev) =>
+          prev.map((item) => item.id === img.id ? { ...item, isLoading: false } : item)
+        );
+      }
+    }
+
+    setIsGenerating(false);
   }, []);
 
   const handleImageLoad = useCallback((id: string) => {
@@ -315,9 +492,7 @@ export function useEditorState(initialProjectId?: string | null) {
   }, []);
 
   const updateCanvasImage = useCallback((id: string, x: number, y: number, w: number, h: number) => {
-    setCanvasImages((prev) =>
-      prev.map((img) => img.id === id ? { ...img, x, y, w, h } : img)
-    );
+    setCanvasImages((prev) => prev.map((img) => img.id === id ? { ...img, x, y, w, h } : img));
     setSaveStatus("unsaved");
   }, []);
 
@@ -326,24 +501,36 @@ export function useEditorState(initialProjectId?: string | null) {
     setSaveStatus("unsaved");
   }, []);
 
-  const handleSave = useCallback(() => {
+  // 저장: 현재 컷 데이터를 Supabase에 저장
+  const handleSave = useCallback(async () => {
+    if (!activeCutId || !activeProjectId) {
+      setSaveStatus("saved");
+      return;
+    }
     setSaveStatus("saving");
-    setTimeout(() => setSaveStatus("saved"), 1200);
-  }, []);
+
+    try {
+      const cutStrokes = allStrokes.filter((s) => s.cutId === activeCutId);
+
+      await supabase.from("cut_data").upsert({
+        cut_id: activeCutId,
+        strokes: cutStrokes,
+        balloons,
+        canvas_images: canvasImages,
+        layers,
+      }, { onConflict: "cut_id" });
+
+      setSaveStatus("saved");
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[useEditorState] 저장 실패:", err);
+      setSaveStatus("unsaved");
+    }
+  }, [activeCutId, activeProjectId, allStrokes, balloons, canvasImages, layers]);
 
   const zoomIn = useCallback(() => setZoom((z) => Math.min(z + 10, 400)), []);
   const zoomOut = useCallback(() => setZoom((z) => Math.max(z - 10, 10)), []);
   const resetZoom = useCallback(() => setZoom(100), []);
-
-  // Stroke 데이터 (선 선택/이동/삭제용) — 에피소드·컷별로 분리 저장
-  const [allStrokes, setAllStrokes] = useState<Stroke[]>([]);
-  const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([]);
-
-  // Undo/Redo 히스토리 스택
-  const [undoStack, setUndoStack] = useState<Stroke[][]>([]);
-  const [redoStack, setRedoStack] = useState<Stroke[][]>([]);
-  const allStrokesRef = useRef(allStrokes);
-  useEffect(() => { allStrokesRef.current = allStrokes; }, [allStrokes]);
 
   const pushHistory = useCallback((prevStrokes: Stroke[]) => {
     setUndoStack((prev) => [...prev.slice(-49), prevStrokes]);
@@ -376,7 +563,6 @@ export function useEditorState(initialProjectId?: string | null) {
     });
   }, []);
 
-  // 현재 에피소드+컷에 해당하는 스트로크만 필터링
   const strokes = useMemo(
     () => allStrokes.filter((s) => s.episodeId === activeEpisodeId && s.cutId === activeCutId),
     [allStrokes, activeEpisodeId, activeCutId]
@@ -436,38 +622,122 @@ export function useEditorState(initialProjectId?: string | null) {
 
   const clearAllStrokes = useCallback(() => {
     pushHistory(allStrokesRef.current);
-    // 현재 에피소드+컷의 스트로크만 지움
     setAllStrokes((prev) => prev.filter(
       (s) => !(s.episodeId === activeEpisodeIdRef.current && s.cutId === activeCutIdRef.current)
     ));
     setSelectedStrokeIds([]);
-    // 캔버스 이미지와 말풍선도 초기화
     setCanvasImages([]);
     setBalloons([]);
     setSelectedBalloonId(null);
     setSaveStatus("unsaved");
   }, [pushHistory]);
 
-  // 프로젝트 변경 시 에피소드/컷/그리기 데이터 초기화
-  useEffect(() => {
-    if (!initialProjectId) return;
-    setActiveProjectId(initialProjectId);
-    // TODO: /api/projects/{initialProjectId}/episodes 호출로 실제 에피소드 목록 불러오기
-    setEpisodes(mockEpisodes);
-    setCuts(mockCuts);
-    setActiveEpisodeId("ep-1");
-    setActiveCutId("cut-2");
+  // 에피소드/컷 CRUD — Supabase 연동
+  const addEpisode = useCallback(async (title?: string) => {
+    if (!activeProjectId) return;
+
+    const newTitle = title ?? `에피소드 ${episodes.length + 1}`;
+    const newOrder = episodes.length + 1;
+
+    let newEpId: string;
+    try {
+      const epRes = await api.post(`/api/projects/${activeProjectId}/episodes`, { epNumber: newOrder, epTitle: newTitle });
+      if (!epRes.data?.success) {
+        // eslint-disable-next-line no-console
+        console.error("[useEditorState] 에피소드 생성 실패:", epRes.data?.message);
+        return;
+      }
+      newEpId = String(epRes.data.data.episodeId);
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.error("[useEditorState] 에피소드 생성 실패:", err);
+      return;
+    }
+
+    // 패널(컷) 생성 API가 없으므로 로컬에서 기본 컷 생성
+    const newCutId = `cut-${Date.now()}`;
+
+    const newEpisode: Episode = { id: newEpId, title: newTitle, isActive: true };
+    const newCut: Cut = {
+      id: newCutId,
+      index: 1,
+      label: "컷 1",
+      prompt: "",
+      thumbnail: "",
+      isActive: true,
+      isGenerated: false,
+      episodeId: newEpId,
+    };
+
+    setEpisodes((prev) => prev.map((ep) => ({ ...ep, isActive: false })).concat(newEpisode));
+    setCuts((prev) => prev.map((c) => ({ ...c, isActive: false })).concat(newCut));
+    setActiveEpisodeId(newEpId);
+    setActiveCutId(newCutId);
     setBalloons([]);
     setSelectedBalloonId(null);
     setCanvasImages([]);
     setSelectedStrokeIds([]);
-    setAllStrokes([]);
-    setUndoStack([]);
-    setRedoStack([]);
-    setGeneratedImages([]);
-    setPromptText("");
     setSaveStatus("saved");
-  }, [initialProjectId]);
+  }, [activeProjectId, episodes.length]);
+
+  const addCut = useCallback(async () => {
+    const currentEpId = activeEpisodeIdRef.current;
+    const currentCuts = cutsRef.current.filter((c) => c.episodeId === currentEpId);
+    const nextIndex = currentCuts.length > 0 ? Math.max(...currentCuts.map((c) => c.index)) + 1 : 1;
+
+    // TODO: Java 백엔드에 패널(컷) 생성 API가 추가되면 연동
+    const newCutId = `cut-${Date.now()}`;
+    const newCut: Cut = {
+      id: newCutId,
+      index: nextIndex,
+      label: `컷 ${nextIndex}`,
+      prompt: "",
+      thumbnail: "",
+      isActive: true,
+      isGenerated: false,
+      episodeId: currentEpId,
+    };
+
+    setCuts((prev) => prev.map((c) => c.isActive ? { ...c, isActive: false } : c).concat(newCut));
+    setActiveCutId(newCutId);
+    setBalloons([]);
+    setSelectedBalloonId(null);
+    setCanvasImages([]);
+    setSelectedStrokeIds([]);
+    setSaveStatus("saved");
+  }, []);
+
+  const deleteEpisode = useCallback(async (id: string) => {
+    // TODO: Java 백엔드에 에피소드 삭제 API가 추가되면 연동
+    // 현재는 로컬 상태만 제거
+
+    setEpisodes((prev) => {
+      if (prev.length <= 1) return prev;
+      const next = prev.filter((ep) => ep.id !== id);
+      const wasActive = activeEpisodeIdRef.current === id;
+      if (wasActive) {
+        const fallback = next[0];
+        setActiveEpisodeId(fallback.id);
+        const fallbackCuts = cutsRef.current.filter((c) => c.episodeId === fallback.id);
+        const firstCut = fallbackCuts[0];
+        if (firstCut) setActiveCutId(firstCut.id);
+        setBalloons([]);
+        setSelectedBalloonId(null);
+        setCanvasImages([]);
+        setSelectedStrokeIds([]);
+        return next.map((ep, i) => ({ ...ep, isActive: i === 0 }));
+      }
+      return next;
+    });
+    setCuts((prev) => prev.filter((c) => c.episodeId !== id));
+    setSaveStatus("saved");
+  }, []);
+
+  const renameEpisode = useCallback(async (id: string, title: string) => {
+    // TODO: Java 백엔드에 에피소드 수정 API가 추가되면 연동
+    setEpisodes((prev) => prev.map((ep) => ep.id === id ? { ...ep, title } : ep));
+    setSaveStatus("saved");
+  }, []);
 
   // 키보드 단축키
   useEffect(() => {
@@ -491,7 +761,7 @@ export function useEditorState(initialProjectId?: string | null) {
       s: "stroke-select",
       x: "stroke-eraser",
     };
-    // 키보드 Ctrl+A / Ctrl+Z / Ctrl+Y
+
     const handleKeyUp = (ev: KeyboardEvent) => {
       if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "a") {
         ev.preventDefault();
@@ -503,13 +773,11 @@ export function useEditorState(initialProjectId?: string | null) {
       const tag = (ev.target as HTMLElement).tagName.toLowerCase();
       if (tag === "input" || tag === "textarea" || (ev.target as HTMLElement).isContentEditable) return;
 
-      // Ctrl+Z: 실행 취소
       if ((ev.ctrlKey || ev.metaKey) && !ev.shiftKey && ev.key.toLowerCase() === "z") {
         ev.preventDefault();
         undo();
         return;
       }
-      // Ctrl+Y 또는 Ctrl+Shift+Z: 다시 실행
       if (
         ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "y") ||
         ((ev.ctrlKey || ev.metaKey) && ev.shiftKey && ev.key.toLowerCase() === "z")
@@ -539,93 +807,11 @@ export function useEditorState(initialProjectId?: string | null) {
     };
   }, [deleteStrokes, selectAllStrokes, selectedStrokeIds, undo, redo]);
 
-  const deleteEpisode = useCallback((id: string) => {
-    setEpisodes((prev) => {
-      if (prev.length <= 1) return prev;
-      const next = prev.filter((ep) => ep.id !== id);
-      // 삭제한 게 활성 에피소드면 다른 것으로 자동 이동
-      const wasActive = activeEpisodeIdRef.current === id;
-      if (wasActive) {
-        const fallback = next[0];
-        setActiveEpisodeId(fallback.id);
-        const fallbackCuts = cutsRef.current.filter((c) => c.episodeId === fallback.id);
-        const firstCut = fallbackCuts[0];
-        if (firstCut) setActiveCutId(firstCut.id);
-        setBalloons([]);
-        setSelectedBalloonId(null);
-        setCanvasImages([]);
-        setSelectedStrokeIds([]);
-        return next.map((ep, i) => ({ ...ep, isActive: i === 0 }));
-      }
-      return next;
-    });
-    setCuts((prev) => prev.filter((c) => c.episodeId !== id));
-    setSaveStatus("unsaved");
-  }, []);
-
-  const renameEpisode = useCallback((id: string, title: string) => {
-    setEpisodes((prev) => prev.map((ep) => ep.id === id ? { ...ep, title } : ep));
-    setSaveStatus("unsaved");
-  }, []);
-
-  const addEpisode = useCallback((title?: string) => {
-    const newId = `ep-${Date.now()}`;
-    const newEpisode: Episode = {
-      id: newId,
-      title: title ?? `에피소드 ${episodes.length + 1}`,
-      isActive: true,
-    };
-    setEpisodes((prev) => prev.map((ep) => ({ ...ep, isActive: false })).concat(newEpisode));
-    setActiveEpisodeId(newId);
-    // 새 에피소드의 첫 번째 컷 자동 생성
-    const newCutId = `cut-${Date.now()}`;
-    const newCut: Cut = {
-      id: newCutId,
-      index: 1,
-      label: "컷 1",
-      prompt: "",
-      thumbnail: "",
-      isActive: true,
-      isGenerated: false,
-      episodeId: newId,
-    };
-    setCuts((prev) => prev.map((c) => ({ ...c, isActive: false })).concat(newCut));
-    setActiveCutId(newCutId);
-    // 상태 초기화
-    setBalloons([]);
-    setSelectedBalloonId(null);
-    setCanvasImages([]);
-    setSelectedStrokeIds([]);
-  }, [episodes.length]);
-
-  const addCut = useCallback(() => {
-    const currentEpId = activeEpisodeIdRef.current;
-    const currentCuts = cutsRef.current.filter((c) => c.episodeId === currentEpId);
-    const nextIndex = currentCuts.length > 0 ? Math.max(...currentCuts.map((c) => c.index)) + 1 : 1;
-    const newCutId = `cut-${Date.now()}`;
-    const newCut: Cut = {
-      id: newCutId,
-      index: nextIndex,
-      label: `컷 ${nextIndex}`,
-      prompt: "",
-      thumbnail: "",
-      isActive: true,
-      isGenerated: false,
-      episodeId: currentEpId,
-    };
-    setCuts((prev) => prev.map((c) => c.isActive ? { ...c, isActive: false } : c).concat(newCut));
-    setActiveCutId(newCutId);
-    // 상태 초기화
-    setBalloons([]);
-    setSelectedBalloonId(null);
-    setCanvasImages([]);
-    setSelectedStrokeIds([]);
-  }, []);
-
   return {
     // project
     activeProjectId,
     setActiveProjectId,
+    isLoadingProject,
     // layers
     layers,
     selectedLayerId,

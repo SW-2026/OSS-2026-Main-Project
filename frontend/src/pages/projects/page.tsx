@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import api from "@/lib/api";
 
 interface Project {
   id: string;
   title: string;
-  description: string;
-  thumbnail: string;
+  description: string | null;
+  thumbnail_url: string | null;
   episodeCount: number;
   cutCount: number;
   lastEdited: string;
@@ -15,6 +16,7 @@ interface Project {
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,10 +25,21 @@ export default function ProjectsPage() {
     const fetchProjects = async () => {
       try {
         setIsLoading(true);
+        setError("");
+
         const res = await api.get("/api/projects");
-        const data = res.data;
-        // 백엔드 응답이 배열이거나 { projects: [...] } 형태일 수 있음
-        const list: Project[] = Array.isArray(data) ? data : data.projects ?? data.data ?? [];
+        const data = res.data?.data ?? [];
+        const list: Project[] = data.map((p: any) => ({
+          id: String(p.projectId),
+          title: p.title,
+          description: p.genre || "",
+          thumbnail_url: null,
+          episodeCount: p.episodeCount ?? 0,
+          cutCount: 0,
+          lastEdited: p.createdAt ?? "",
+          status: "draft" as Project["status"],
+        }));
+
         setProjects(list);
       } catch (err: any) {
         setError(err.response?.data?.message ?? "프로젝트를 불러오는 중 오류가 발생했습니다.");
@@ -35,8 +48,13 @@ export default function ProjectsPage() {
       }
     };
 
-    fetchProjects();
-  }, []);
+    if (user) {
+      fetchProjects();
+    } else {
+      setIsLoading(false);
+      setError("로그인이 필요합니다.");
+    }
+  }, [user]);
 
   const statusLabels: Record<string, { label: string; color: string; bg: string }> = {
     draft: { label: "작성 중", color: "text-amber-400", bg: "bg-amber-400/10" },
@@ -45,13 +63,27 @@ export default function ProjectsPage() {
   };
 
   const handleCreateProject = async () => {
+    if (!user) {
+      setError("로그인이 필요합니다.");
+      return;
+    }
     try {
-      const res = await api.post("/api/projects", {
-        title: "새 프로젝트",
-        description: "",
+      setError("");
+      const res = await api.post("/api/projects", { title: "새 프로젝트", genre: "미정" });
+      if (!res.data?.success) throw new Error(res.data?.message || "프로젝트 생성에 실패했습니다.");
+      const p = res.data.data;
+
+      const newProject: Project = {
+        id: String(p.projectId),
+        title: p.title,
+        description: p.genre || "",
+        thumbnail_url: null,
+        episodeCount: p.episodeCount ?? 0,
+        cutCount: 0,
+        lastEdited: p.createdAt ?? "",
         status: "draft",
-      });
-      const newProject: Project = res.data;
+      };
+
       setProjects((prev) => [newProject, ...prev]);
     } catch (err: any) {
       setError(err.response?.data?.message ?? "프로젝트 생성 중 오류가 발생했습니다.");
@@ -124,14 +156,14 @@ export default function ProjectsPage() {
               return (
                 <div
                   key={project.id}
-                  onClick={() => navigate(`/?projectId=${project.id}`)}
+                  onClick={() => navigate(`/editor?projectId=${project.id}`)}
                   className="group bg-[#111] border border-[#222] rounded-2xl overflow-hidden hover:border-[#333] transition-all cursor-pointer"
                 >
                   {/* 썸네일 */}
                   <div className="relative w-full h-40 overflow-hidden">
-                    {project.thumbnail ? (
+                    {project.thumbnail_url ? (
                       <img
-                        src={project.thumbnail}
+                        src={project.thumbnail_url}
                         alt={project.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />

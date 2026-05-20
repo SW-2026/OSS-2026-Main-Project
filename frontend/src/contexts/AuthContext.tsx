@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Session } from "@supabase/supabase-js";
 
 export interface User {
   id: string;
@@ -20,49 +19,62 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function sessionToUser(session: Session): User {
-  const meta = session.user.user_metadata ?? {};
-  const email = session.user.email ?? "";
-  const nickname = meta.nickname ?? meta.name ?? email.split("@")[0];
-  return {
-    id: session.user.id,
-    email,
-    nickname,
-    avatar: nickname.charAt(0).toUpperCase(),
-    createdAt: session.user.created_at,
-  };
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 현재 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session ? sessionToUser(session) : null);
+      if (session?.user) {
+        const u = session.user;
+        setUser({
+          id: u.id,
+          email: u.email ?? "",
+          nickname: (u.user_metadata?.nickname as string) || "사용자",
+          avatar: ((u.user_metadata?.nickname as string) || "사용자")?.charAt(0).toUpperCase(),
+          createdAt: u.created_at,
+        });
+      }
       setIsLoading(false);
     });
 
-    // 인증 상태 변경 구독
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session ? sessionToUser(session) : null);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        setUser({
+          id: u.id,
+          email: u.email ?? "",
+          nickname: (u.user_metadata?.nickname as string) || "사용자",
+          avatar: ((u.user_metadata?.nickname as string) || "사용자")?.charAt(0).toUpperCase(),
+          createdAt: u.created_at,
+        });
+      } else {
+        setUser(null);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+        if (error.message.includes("Invalid login")) {
           return { success: false, error: "이메일 또는 비밀번호가 올바르지 않습니다." };
         }
-        if (error.message.includes("Email not confirmed")) {
-          return { success: false, error: "이메일 인증이 필요합니다. 받은 편지함을 확인해주세요." };
-        }
         return { success: false, error: error.message };
+      }
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email ?? "",
+          nickname: (data.user.user_metadata?.nickname as string) || "사용자",
+          avatar: ((data.user.user_metadata?.nickname as string) || "사용자")?.charAt(0).toUpperCase(),
+          createdAt: data.user.created_at,
+        });
       }
       return { success: true };
     } catch {
@@ -72,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = useCallback(async (email: string, password: string, nickname: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -80,10 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
       if (error) {
-        if (error.message.includes("already registered") || error.message.includes("User already registered")) {
+        if (error.message.includes("already registered") || error.message.includes("중복")) {
           return { success: false, error: "이미 가입된 이메일입니다." };
         }
         return { success: false, error: error.message };
+      }
+      if (data.user?.identities?.length === 0) {
+        return { success: false, error: "이미 가입된 이메일입니다." };
       }
       return { success: true };
     } catch {
@@ -93,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
+    setUser(null);
   }, []);
 
   return (
