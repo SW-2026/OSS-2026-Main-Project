@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +50,18 @@ public class PanelGenerationService {
                         .build()
         );
 
-        orchestrator.processPanelGeneration(task.getTaskId(), episodeId, request);
+        Long taskId = task.getTaskId();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            orchestrator.processPanelGeneration(taskId, episodeId, request);
+                        }
+                    });
+        } else {
+            orchestrator.processPanelGeneration(taskId, episodeId, request);
+        }
 
         return toResponse(task);
     }
