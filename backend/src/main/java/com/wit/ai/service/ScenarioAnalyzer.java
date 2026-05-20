@@ -21,7 +21,8 @@ import java.util.Set;
 @Service
 public class ScenarioAnalyzer {
 
-    private static final int EXPECTED_PANEL_COUNT = 10;
+    private static final int MIN_PANEL_COUNT = 6;
+    private static final int MAX_PANEL_COUNT = 14;
     private static final int MAX_RETRIES = 1;
 
     private final LlmClient llmClient;
@@ -49,12 +50,13 @@ public class ScenarioAnalyzer {
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             String response = llmClient.complete(systemPrompt, userMessage);
             List<ScenarioPanel> panels = parsePanels(response);
-            if (panels.size() == EXPECTED_PANEL_COUNT) {
+            int size = panels.size();
+            if (size >= MIN_PANEL_COUNT && size <= MAX_PANEL_COUNT) {
                 return sanitize(panels, validModelIds);
             }
         }
         throw new LlmException(
-                "ScenarioAnalyzer failed: expected " + EXPECTED_PANEL_COUNT
+                "ScenarioAnalyzer failed: expected " + MIN_PANEL_COUNT + "~" + MAX_PANEL_COUNT
                         + " panels after " + (MAX_RETRIES + 1) + " attempts");
     }
 

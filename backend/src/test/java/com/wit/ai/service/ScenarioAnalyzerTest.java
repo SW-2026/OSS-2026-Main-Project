@@ -95,7 +95,7 @@ class ScenarioAnalyzerTest {
 
         assertThatThrownBy(() -> analyzer.analyze("story", List.of()))
                 .isInstanceOf(LlmException.class)
-                .hasMessageContaining("10");
+                .hasMessageContaining("6~14");
         assertThat(calls.get()).isEqualTo(2);
     }
 
