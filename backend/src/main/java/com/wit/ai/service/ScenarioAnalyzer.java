@@ -7,6 +7,7 @@ import com.wit.ai.client.LlmClient;
 import com.wit.ai.client.LlmException;
 import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.ScenarioPanel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class ScenarioAnalyzer {
 
     private static final int MIN_PANEL_COUNT = 6;
@@ -47,17 +49,22 @@ public class ScenarioAnalyzer {
         String userMessage = buildUserMessage(scenarioText, mentions);
         Set<Long> validModelIds = collectValidModelIds(mentions);
 
+        String lastSnippet = null;
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             String response = llmClient.complete(systemPrompt, userMessage);
+            lastSnippet = snippet(response);
             List<ScenarioPanel> panels = parsePanels(response);
             int size = panels.size();
             if (size >= MIN_PANEL_COUNT && size <= MAX_PANEL_COUNT) {
                 return sanitize(panels, validModelIds);
             }
+            log.warn("ScenarioAnalyzer attempt {}: got {} panels (expected {}~{})",
+                    attempt + 1, size, MIN_PANEL_COUNT, MAX_PANEL_COUNT);
         }
         throw new LlmException(
                 "ScenarioAnalyzer failed: expected " + MIN_PANEL_COUNT + "~" + MAX_PANEL_COUNT
-                        + " panels after " + (MAX_RETRIES + 1) + " attempts");
+                        + " panels after " + (MAX_RETRIES + 1) + " attempts"
+                        + ". last response snippet: " + lastSnippet);
     }
 
     private String buildUserMessage(String scenarioText, List<CharacterMention> mentions) {
@@ -79,13 +86,25 @@ public class ScenarioAnalyzer {
             JsonNode root = objectMapper.readTree(stripCodeFence(response));
             JsonNode panelsNode = root.get("panels");
             if (panelsNode == null || !panelsNode.isArray()) {
+                log.warn("parsePanels: 'panels' key missing or not array. snippet={}",
+                        snippet(response));
                 return List.of();
             }
             return objectMapper.convertValue(panelsNode, new TypeReference<List<ScenarioPanel>>() {
             });
         } catch (IOException e) {
+            log.warn("parsePanels: failed to parse JSON. error={}, snippet={}",
+                    e.getMessage(), snippet(response));
             return List.of();
         }
+    }
+
+    private static String snippet(String s) {
+        if (s == null) return "(null)";
+        int max = 300;
+        return s.length() <= max
+                ? s
+                : s.substring(0, max) + "...(" + (s.length() - max) + " chars truncated)";
     }
 
     private String stripCodeFence(String text) {
