@@ -45,11 +45,12 @@ public class ComfyUIRestClient implements ComfyUIClient {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.set("prompt", workflowNode);
             requestBody.put("client_id", CLIENT_ID);
+            String json = objectMapper.writeValueAsString(requestBody);
 
             PromptResponse response = restClient.post()
                     .uri("/prompt")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(requestBody)
+                    .body(json)
                     .retrieve()
                     .body(PromptResponse.class);
 

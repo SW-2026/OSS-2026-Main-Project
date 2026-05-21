@@ -30,5 +30,5 @@ ai:
     base-url: https://generativelanguage.googleapis.com
     api-key: ${GEMINI_API_KEY:}
     model: gemini-2.5-flash
-    max-tokens: 2000
+    max-tokens: 8192
     temperature: 0.7
