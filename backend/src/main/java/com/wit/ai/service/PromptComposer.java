@@ -30,7 +30,7 @@ public class PromptComposer {
     public ComposedPrompt compose(ScenarioPanel panel, CharacterMention mention) {
         String positive = buildPositive(panel);
         String loraName = (mention != null) ? mention.triggerWord() : null;
-        long seed = random.nextLong();
+        long seed = random.nextLong() & Long.MAX_VALUE;
         return new ComposedPrompt(positive, DEFAULT_NEGATIVE_PROMPT, seed, loraName);
     }
 
