@@ -29,9 +29,21 @@ public class PromptComposer {
 
     public ComposedPrompt compose(ScenarioPanel panel, CharacterMention mention) {
         String positive = buildPositive(panel);
-        String loraName = (mention != null) ? mention.triggerWord() : null;
+        String loraName = buildLoraName(mention);
         long seed = random.nextLong() & Long.MAX_VALUE;
         return new ComposedPrompt(positive, DEFAULT_NEGATIVE_PROMPT, seed, loraName);
+    }
+
+    private String buildLoraName(CharacterMention mention) {
+        if (mention == null) return null;
+        String path = mention.loraModelPath();
+        String trigger = mention.triggerWord();
+        if (path == null || path.isBlank()) {
+            return trigger;
+        }
+        return (trigger == null || trigger.isBlank())
+                ? "<lora:" + path + ":1.0>"
+                : "<lora:" + path + ":1.0> " + trigger;
     }
 
     private String buildPositive(ScenarioPanel panel) {
