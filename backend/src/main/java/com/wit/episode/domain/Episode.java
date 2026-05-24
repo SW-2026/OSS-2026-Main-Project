@@ -59,4 +59,15 @@ public class Episode {
         this.panels.add(panel);
         panel.setEpisode(this);
     }
+
+    // PATCH — null이 아닌 필드만 덮어씀 (dirty checking으로 자동 저장)
+    // Project.updatePartial 패턴 그대로
+    public void updatePartial(Integer epNumber, String epTitle) {
+        if (epNumber != null) {
+            this.epNumber = epNumber;
+        }
+        if (epTitle != null) {
+            this.epTitle = epTitle;
+        }
+    }
 }

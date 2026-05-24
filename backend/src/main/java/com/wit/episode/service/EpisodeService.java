@@ -89,6 +89,40 @@ public class EpisodeService {
         );
     }
 
+    // Episode 부분 수정 (PATCH) — null이 아닌 필드만 반영, 변경감지(dirty checking)로 자동 저장
+    @Transactional
+    public EpisodeResponse update(Member member, Long episodeId, EpisodeUpdateRequest request) {
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 에피소드를 찾을 수 없습니다. ID: " + episodeId));
+
+        validateProjectOwner(member, episode.getProject().getProjectId());
+
+        episode.updatePartial(
+                request.getEpNumber() != null ? request.getEpNumber().intValue() : null,
+                request.getEpTitle()
+        );
+
+        return new EpisodeResponse(
+                episode.getEpisodeId(),
+                episode.getProject().getProjectId(),
+                (long) episode.getEpNumber(),
+                episode.getEpTitle(),
+                episode.getCreatedAt()
+        );
+    }
+
+    // Episode 삭제 (DELETE) — 본인 프로젝트의 에피소드만 삭제 가능,
+    // Episode.panels의 orphanRemoval=true + CascadeType.ALL로 하위 panel도 함께 제거
+    @Transactional
+    public void delete(Member member, Long episodeId) {
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 에피소드를 찾을 수 없습니다. ID: " + episodeId));
+
+        validateProjectOwner(member, episode.getProject().getProjectId());
+
+        episodeRepository.delete(episode);
+    }
+
     private Project validateProjectOwner(Member member, Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 프로젝트를 찾을 수 없습니다. ID: " + projectId));

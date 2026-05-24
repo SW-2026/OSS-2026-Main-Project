@@ -63,4 +63,33 @@ public class EpisodeController {
         EpisodeDetailResponse response = episodeService.getOne(member, episodeId);
         return ApiResponse.ok(response);
     }
+
+    /**
+     * 4. 에피소드 부분 수정 (PATCH /api/episodes/{episodeId})
+     * 요청 바디는 EpisodeUpdateRequest — null이 아닌 필드만 덮어씁니다.
+     */
+    @PatchMapping("/api/episodes/{episodeId}")
+    public ApiResponse<EpisodeResponse> update(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episodeId") Long episodeId,
+            @Valid @RequestBody EpisodeUpdateRequest request
+    ) {
+        Member member = principalDetails.getMember();
+        EpisodeResponse response = episodeService.update(member, episodeId, request);
+        return ApiResponse.ok(response);
+    }
+
+    /**
+     * 5. 에피소드 삭제 (DELETE /api/episodes/{episodeId})
+     * 소유자 검증 후 에피소드와 하위 패널을 cascade로 함께 삭제합니다.
+     */
+    @DeleteMapping("/api/episodes/{episodeId}")
+    public ApiResponse<Void> delete(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episodeId") Long episodeId
+    ) {
+        Member member = principalDetails.getMember();
+        episodeService.delete(member, episodeId);
+        return ApiResponse.<Void>ok(null);
+    }
 }
