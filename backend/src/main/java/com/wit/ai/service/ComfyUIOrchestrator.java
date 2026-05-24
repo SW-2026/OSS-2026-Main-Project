@@ -36,7 +36,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -85,7 +87,8 @@ public class ComfyUIOrchestrator {
                     1, "character generation", model.getModelId(),
                     null, null, poseTags, backgroundTags, null);
             CharacterMention fakeMention = new CharacterMention(
-                    model.getModelName(), model.getModelId(), model.getTriggerWord());
+                    model.getModelName(), model.getModelId(), model.getTriggerWord(),
+                    model.getLoraModelPath());
             ComposedPrompt composed = promptComposer.compose(fakePanel, fakeMention);
 
             stage = "loadWorkflow";
@@ -157,9 +160,21 @@ public class ComfyUIOrchestrator {
             masterStage = "buildMentionMap";
             Map<Long, CharacterMention> mentionByModelId = new HashMap<>();
             if (request.characters() != null) {
+                List<Long> modelIds = request.characters().stream()
+                        .map(CharacterMention::modelId)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .toList();
+                Map<Long, CharacterModel> modelById = modelIds.isEmpty()
+                        ? Map.of()
+                        : characterModelRepository.findAllById(modelIds).stream()
+                                .collect(Collectors.toMap(CharacterModel::getModelId, m -> m));
                 for (CharacterMention m : request.characters()) {
                     if (m.modelId() != null) {
-                        mentionByModelId.put(m.modelId(), m);
+                        CharacterModel cm = modelById.get(m.modelId());
+                        String loraPath = (cm != null) ? cm.getLoraModelPath() : null;
+                        mentionByModelId.put(m.modelId(),
+                                new CharacterMention(m.name(), m.modelId(), m.triggerWord(), loraPath));
                     }
                 }
             }

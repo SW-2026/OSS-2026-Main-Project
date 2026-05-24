@@ -43,6 +43,7 @@ public class CharacterModelService {
                         .project(project)
                         .modelName(request.getModelName())
                         .triggerWord(request.getTriggerWord())
+                        .loraModelPath(request.getLoraModelPath())
                         .appearancePrompt(request.getAppearancePrompt())
                         .outfitPrompt(request.getOutfitPrompt())
                         .status(ModelStatus.PENDING)

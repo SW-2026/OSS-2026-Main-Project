@@ -49,6 +49,17 @@ class PromptComposerTest {
     }
 
     @Test
+    void compose_with_loraModelPath_returns_lora_tag_with_trigger() {
+        PromptComposer composer = new PromptComposer(new Random(42L));
+        CharacterMention mention = new CharacterMention(
+                "연우", 1L, "yeonwoo_v1", "yeonwoo_v1");
+
+        ComposedPrompt result = composer.compose(samplePanel(), mention);
+
+        assertThat(result.loraName()).isEqualTo("<lora:yeonwoo_v1:1.0> yeonwoo_v1");
+    }
+
+    @Test
     void compose_uses_default_negative_prompt() {
         PromptComposer composer = new PromptComposer(new Random(42L));
 
