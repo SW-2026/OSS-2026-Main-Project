@@ -4,9 +4,12 @@ import com.wit.ai.domain.AiTask;
 import com.wit.ai.domain.TaskStatus;
 import com.wit.ai.domain.TaskType;
 import com.wit.ai.dto.AiPanelsGenerateRequest;
+import com.wit.ai.dto.BackgroundMention;
 import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.TaskResponse;
 import com.wit.ai.repository.AiTaskRepository;
+import com.wit.background_asset.domain.BackgroundAsset;
+import com.wit.background_asset.repository.BackgroundAssetRepository;
 import com.wit.episode.domain.Episode;
 import com.wit.episode.repository.EpisodeRepository;
 import com.wit.member.domain.Member;
@@ -30,6 +33,7 @@ public class PanelGenerationService {
 
     private final EpisodeRepository episodeRepository;
     private final CharacterModelRepository characterModelRepository;
+    private final BackgroundAssetRepository backgroundAssetRepository;
     private final AiTaskRepository aiTaskRepository;
     private final ComfyUIOrchestrator orchestrator;
 
@@ -38,6 +42,7 @@ public class PanelGenerationService {
         Episode episode = validateEpisodeAccess(member, episodeId);
         Long projectId = episode.getProject().getProjectId();
         validateCharacterMentions(projectId, request.characters());
+        validateBackgroundMentions(member, request.backgrounds());
 
         AiTask task = aiTaskRepository.save(
                 AiTask.builder()
@@ -96,6 +101,30 @@ public class PanelGenerationService {
             if (!m.getProject().getProjectId().equals(projectId)) {
                 throw new AccessDeniedException(
                         "다른 프로젝트의 CharacterModel입니다. modelId=" + m.getModelId());
+            }
+        }
+    }
+
+    private void validateBackgroundMentions(Member member, List<BackgroundMention> backgrounds) {
+        if (backgrounds == null || backgrounds.isEmpty()) {
+            return;
+        }
+        List<Long> assetIds = backgrounds.stream()
+                .map(BackgroundMention::assetId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (assetIds.isEmpty()) {
+            return;
+        }
+        List<BackgroundAsset> assets = backgroundAssetRepository.findAllById(assetIds);
+        if (assets.size() != assetIds.size()) {
+            throw new EntityNotFoundException("일부 BackgroundAsset을 찾을 수 없습니다.");
+        }
+        for (BackgroundAsset asset : assets) {
+            if (!asset.getMember().getMemberId().equals(member.getMemberId())) {
+                throw new AccessDeniedException(
+                        "다른 사용자의 BackgroundAsset입니다. assetId=" + asset.getAssetId());
             }
         }
     }

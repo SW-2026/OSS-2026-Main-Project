@@ -239,14 +239,14 @@ class ComfyUIOrchestratorTest {
 
         assertThat(task.getStatus()).isEqualTo(TaskStatus.FAILED);
         assertThat(task.getErrorMessage()).contains("[loadEpisode]");
-        verify(scenarioAnalyzer, never()).analyze(anyString(), any());
+        verify(scenarioAnalyzer, never()).analyze(anyString(), any(), any());
     }
 
     @Test
     void processPanel_llm_failure_marksFailed_analyze() {
         when(aiTaskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
         when(episodeRepository.findById(EPISODE_ID)).thenReturn(Optional.of(episode));
-        when(scenarioAnalyzer.analyze(anyString(), any()))
+        when(scenarioAnalyzer.analyze(anyString(), any(), any()))
                 .thenThrow(new LlmException("Gemini rate limit"));
 
         AiPanelsGenerateRequest request = panelsRequest(List.of());
@@ -317,7 +317,7 @@ class ComfyUIOrchestratorTest {
                     i + 1, "panel " + (i + 1), modelIdsByPanel.get(i),
                     "action", "emotion", "pose", "bg", "camera"));
         }
-        when(scenarioAnalyzer.analyze(anyString(), any())).thenReturn(scenarioPanels);
+        when(scenarioAnalyzer.analyze(anyString(), any(), any())).thenReturn(scenarioPanels);
 
         when(promptComposer.compose(any(ScenarioPanel.class), any()))
                 .thenReturn(new ComposedPrompt("positive", "negative", 42L, "anya_v1"));
