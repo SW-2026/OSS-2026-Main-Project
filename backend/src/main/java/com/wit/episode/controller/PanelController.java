@@ -4,7 +4,6 @@ import com.wit.ai.dto.AiPanelsGenerateRequest;
 import com.wit.ai.dto.TaskResponse;
 import com.wit.ai.service.PanelGenerationService;
 import com.wit.auth.dto.PrincipalDetails;
-import com.wit.episode.domain.Panel;
 import com.wit.episode.dto.PanelDetailResponse;
 import com.wit.episode.dto.PanelReorderRequest;
 import com.wit.episode.service.PanelService;
@@ -18,7 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -41,20 +39,16 @@ public class PanelController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.ok(response));
     }
 
-    // 컷 목록 조회
+    // 컷 목록 조회 (Phase 1: 캐릭터/배경 Asset URL 포함)
     @GetMapping("/episodes/{episodeId}/panels")
     public ApiResponse<List<PanelDetailResponse>> getPanels(@PathVariable("episodeId") Long episodeId) {
-        List<PanelDetailResponse> responses = panelService.getPanels(episodeId).stream()
-                .map(PanelDetailResponse::from)
-                .collect(Collectors.toList());
-        return ApiResponse.ok(responses);
+        return ApiResponse.ok(panelService.getPanelsWithAssets(episodeId));
     }
 
-    //컷 단건 조회
+    //컷 단건 조회 (Phase 1: 캐릭터/배경 Asset URL 포함)
     @GetMapping("/panels/{panelId}")
     public ApiResponse<PanelDetailResponse> getPanel(@PathVariable("panelId") Long panelId) {
-        Panel panel = panelService.getPanel(panelId);
-        return ApiResponse.ok(PanelDetailResponse.from(panel));
+        return ApiResponse.ok(panelService.getPanelWithAssets(panelId));
     }
 
     // 컷 수동 생성
