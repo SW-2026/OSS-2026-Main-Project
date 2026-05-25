@@ -1,8 +1,13 @@
 package com.wit.episode.service;
 
+import com.wit.ai.domain.CharacterAsset;
+import com.wit.ai.repository.CharacterAssetRepository;
+import com.wit.background_asset.domain.BackgroundAsset;
+import com.wit.background_asset.repository.BackgroundAssetRepository;
 import com.wit.episode.domain.Episode;
 import com.wit.episode.domain.Panel;
 import com.wit.episode.domain.PanelStatus;
+import com.wit.episode.dto.PanelDetailResponse;
 import com.wit.episode.repository.EpisodeRepository;
 import com.wit.episode.repository.PanelRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +26,8 @@ public class PanelService {
 
     private final PanelRepository panelRepository;
     private final EpisodeRepository episodeRepository;
+    private final CharacterAssetRepository characterAssetRepository;
+    private final BackgroundAssetRepository backgroundAssetRepository;
 
     /**
      * 1단계 placeholder. PanelGenerationService.generate() 사용. 추후 정리 트랙에서 제거 예정.
@@ -52,11 +60,59 @@ public class PanelService {
     }
 
     /**
+     * 2-1. 컷 목록 조회 + Asset URL enrichment (Phase 1: panel 응답에 캐릭터/배경 URL 포함)
+     * N+1 회피 — characterAssetId/backgroundAssetId batch 조회 후 Map lookup
+     */
+    public List<PanelDetailResponse> getPanelsWithAssets(Long episodeId) {
+        List<Panel> panels = panelRepository.findByEpisode_EpisodeIdOrderByPanelOrderAsc(episodeId);
+
+        List<Long> charIds = panels.stream()
+                .map(Panel::getCharacterAssetId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        List<Long> bgIds = panels.stream()
+                .map(Panel::getBackgroundAssetId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, String> charUrlMap = characterAssetRepository.findAllById(charIds).stream()
+                .collect(Collectors.toMap(CharacterAsset::getAssetId, CharacterAsset::getImageUrl));
+        Map<Long, String> bgUrlMap = backgroundAssetRepository.findAllById(bgIds).stream()
+                .collect(Collectors.toMap(BackgroundAsset::getAssetId, BackgroundAsset::getAssetUrl));
+
+        return panels.stream()
+                .map(p -> PanelDetailResponse.from(
+                        p,
+                        p.getCharacterAssetId() != null ? charUrlMap.get(p.getCharacterAssetId()) : null,
+                        p.getBackgroundAssetId() != null ? bgUrlMap.get(p.getBackgroundAssetId()) : null))
+                .toList();
+    }
+
+    /**
      * 3. 컷 단건 조회
      */
     public Panel getPanel(Long panelId) {
         return panelRepository.findById(panelId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 패널이 없습니다. id=" + panelId));
+    }
+
+    /**
+     * 3-1. 컷 단건 조회 + Asset URL enrichment (Phase 1)
+     * 단건은 N+1 무관 — Asset 별로 findById 2번
+     */
+    public PanelDetailResponse getPanelWithAssets(Long panelId) {
+        Panel panel = getPanel(panelId);
+        String charUrl = panel.getCharacterAssetId() != null
+                ? characterAssetRepository.findById(panel.getCharacterAssetId())
+                        .map(CharacterAsset::getImageUrl).orElse(null)
+                : null;
+        String bgUrl = panel.getBackgroundAssetId() != null
+                ? backgroundAssetRepository.findById(panel.getBackgroundAssetId())
+                        .map(BackgroundAsset::getAssetUrl).orElse(null)
+                : null;
+        return PanelDetailResponse.from(panel, charUrl, bgUrl);
     }
 
     /**
