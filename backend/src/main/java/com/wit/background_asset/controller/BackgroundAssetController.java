@@ -4,6 +4,7 @@ import com.wit.background_asset.dto.BackgroundAssetRequest;
 import com.wit.background_asset.dto.BackgroundAssetResponse;
 import com.wit.background_asset.dto.BackgroundAssetUploadRequest;
 import com.wit.background_asset.service.BackgroundAssetService;
+import com.wit.auth.dto.PrincipalDetails;
 import com.wit.global.response.ApiResponse;
 import com.wit.member.domain.Member;
 import jakarta.validation.Valid;
@@ -22,30 +23,34 @@ public class BackgroundAssetController {
 
     @PostMapping
     public ApiResponse<Long> uploadAsset(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @RequestBody BackgroundAssetRequest dto) {
+        Member member = principalDetails.getMember();
         return ApiResponse.created(assetService.upload(member, dto));
     }
 
     @GetMapping
     public ApiResponse<List<BackgroundAssetResponse>> getMyAssets(
-            @AuthenticationPrincipal Member member) {
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        Member member = principalDetails.getMember();
         return ApiResponse.ok(assetService.getMyAssets(member));
     }
 
     @DeleteMapping("/{assetId}")
     public ApiResponse<Void> deleteAsset(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable Long assetId) {
+        Member member = principalDetails.getMember();
         assetService.delete(member, assetId);
         return ApiResponse.ok(null);
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Long> uploadAssetMultipart(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @Valid @RequestPart("metadata") BackgroundAssetUploadRequest metadata,
             @RequestPart("image") MultipartFile image) {
+        Member member = principalDetails.getMember();
         return ApiResponse.created(assetService.uploadMultipart(member, metadata, image));
     }
 }
