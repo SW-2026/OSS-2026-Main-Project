@@ -60,7 +60,8 @@ class ScenarioAnalyzerTest {
                 "story",
                 List.of(
                         new CharacterMention("연우", 1L, "yeonwoo_v1"),
-                        new CharacterMention("지섭", 2L, "jiseop_v1")));
+                        new CharacterMention("지섭", 2L, "jiseop_v1")),
+                List.of());
 
         assertThat(panels).hasSize(10);
         assertThat(panels.get(0).panelOrder()).isEqualTo(1);
@@ -78,7 +79,8 @@ class ScenarioAnalyzerTest {
         ScenarioAnalyzer analyzer = build(client);
 
         List<ScenarioPanel> panels = analyzer.analyze(
-                "story", List.of(new CharacterMention("연우", 1L, "yeonwoo_v1")));
+                "story", List.of(new CharacterMention("연우", 1L, "yeonwoo_v1")),
+                List.of());
 
         assertThat(panels).hasSize(10);
         assertThat(calls.get()).isEqualTo(2);
@@ -93,7 +95,7 @@ class ScenarioAnalyzerTest {
         };
         ScenarioAnalyzer analyzer = build(client);
 
-        assertThatThrownBy(() -> analyzer.analyze("story", List.of()))
+        assertThatThrownBy(() -> analyzer.analyze("story", List.of(), List.of()))
                 .isInstanceOf(LlmException.class)
                 .hasMessageContaining("6~14");
         assertThat(calls.get()).isEqualTo(2);
@@ -108,7 +110,8 @@ class ScenarioAnalyzerTest {
                 "story",
                 List.of(
                         new CharacterMention("연우", 1L, "yeonwoo_v1"),
-                        new CharacterMention("지섭", 2L, "jiseop_v1")));
+                        new CharacterMention("지섭", 2L, "jiseop_v1")),
+                List.of());
 
         assertThat(panels.get(0).characterModelId()).isNull();
         assertThat(panels.get(1).characterModelId()).isEqualTo(2L);
@@ -121,7 +124,8 @@ class ScenarioAnalyzerTest {
         ScenarioAnalyzer analyzer = build(client);
 
         List<ScenarioPanel> panels = analyzer.analyze(
-                "story", List.of(new CharacterMention("연우", 1L, "yeonwoo_v1")));
+                "story", List.of(new CharacterMention("연우", 1L, "yeonwoo_v1")),
+                List.of());
 
         assertThat(panels).hasSize(10);
         assertThat(panels.get(0).characterModelId()).isEqualTo(1L);

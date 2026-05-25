@@ -181,7 +181,8 @@ public class ComfyUIOrchestrator {
 
             masterStage = "analyze";
             List<ScenarioPanel> scenarioPanels =
-                    scenarioAnalyzer.analyze(request.scenarioText(), request.characters());
+                    scenarioAnalyzer.analyze(request.scenarioText(), request.characters(),
+                            request.backgrounds());
 
             masterStage = "panelsInit";
             List<Panel> panels = new ArrayList<>(scenarioPanels.size());
@@ -191,6 +192,7 @@ public class ComfyUIOrchestrator {
                         .status(PanelStatus.PENDING)
                         .scenarioText(sp.panelScenario())
                         .extractedParams(serializeScenarioPanel(sp))
+                        .backgroundAssetId(sp.backgroundAssetId())
                         .build();
                 episode.addPanel(panel);
                 panels.add(panel);
