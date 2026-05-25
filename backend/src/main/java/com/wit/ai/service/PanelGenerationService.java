@@ -122,7 +122,12 @@ public class PanelGenerationService {
             throw new EntityNotFoundException("일부 BackgroundAsset을 찾을 수 없습니다.");
         }
         for (BackgroundAsset asset : assets) {
-            if (!asset.getMember().getMemberId().equals(member.getMemberId())) {
+            Member owner = asset.getMember();
+            if (owner == null) {
+                throw new EntityNotFoundException(
+                        "데이터 무결성 오류 — BackgroundAsset의 member가 없음. assetId=" + asset.getAssetId());
+            }
+            if (!owner.getMemberId().equals(member.getMemberId())) {
                 throw new AccessDeniedException(
                         "다른 사용자의 BackgroundAsset입니다. assetId=" + asset.getAssetId());
             }
