@@ -98,7 +98,7 @@
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "8",
+        "18",
         0
       ]
     },
@@ -149,6 +149,47 @@
     "class_type": "StringConcatenate",
     "_meta": {
       "title": "Text Concatenate"
+    }
+  },
+  "16": {
+    "inputs": {
+      "bg_removal_name": "BiRefNet/model.safetensors"
+    },
+    "class_type": "LoadBackgroundRemovalModel",
+    "_meta": {
+      "title": "Load Background Removal Model"
+    }
+  },
+  "17": {
+    "inputs": {
+      "image": [
+        "8",
+        0
+      ],
+      "bg_removal_model": [
+        "16",
+        0
+      ]
+    },
+    "class_type": "RemoveBackground",
+    "_meta": {
+      "title": "Remove Background"
+    }
+  },
+  "18": {
+    "inputs": {
+      "image": [
+        "8",
+        0
+      ],
+      "alpha": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "JoinImageWithAlpha",
+    "_meta": {
+      "title": "Join Image with Alpha"
     }
   }
 }
