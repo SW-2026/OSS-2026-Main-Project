@@ -2,12 +2,16 @@ package com.wit.background_asset.controller;
 
 import com.wit.background_asset.dto.BackgroundAssetRequest;
 import com.wit.background_asset.dto.BackgroundAssetResponse;
+import com.wit.background_asset.dto.BackgroundAssetUploadRequest;
 import com.wit.background_asset.service.BackgroundAssetService;
 import com.wit.global.response.ApiResponse;
 import com.wit.member.domain.Member;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
@@ -35,5 +39,13 @@ public class BackgroundAssetController {
             @PathVariable Long assetId) {
         assetService.delete(member, assetId);
         return ApiResponse.ok(null);
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Long> uploadAssetMultipart(
+            @AuthenticationPrincipal Member member,
+            @Valid @RequestPart("metadata") BackgroundAssetUploadRequest metadata,
+            @RequestPart("image") MultipartFile image) {
+        return ApiResponse.created(assetService.uploadMultipart(member, metadata, image));
     }
 }
