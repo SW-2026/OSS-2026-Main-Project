@@ -183,13 +183,25 @@
         0
       ],
       "alpha": [
-        "17",
+        "19",
         0
       ]
     },
     "class_type": "JoinImageWithAlpha",
     "_meta": {
       "title": "Join Image with Alpha"
+    }
+  },
+  "19": {
+    "inputs": {
+      "mask": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
     }
   }
 }
