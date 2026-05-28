@@ -14,7 +14,17 @@ import java.util.Random;
 public class PromptComposer {
 
     private static final String DEFAULT_NEGATIVE_PROMPT =
-            "worst quality, low quality, bad anatomy, blurry, watermark, signature";
+            "loli, shota, child, toddler, infant, underage, "
+            + "nsfw, nude, naked, explicit, sexual, suggestive, revealing clothing, underwear, cleavage, "
+            + "(worst quality, low quality:1.4), (3d, photorealistic, realistic:1.3), "
+            + "(soft shading, gradient, heavy rendering:1.3), "
+            + "detailed background, scenery, props, sketch, messy lines, "
+            + "bad anatomy, bad hands, missing fingers, text, watermark";
+
+    private static final String STYLE_PREFIX =
+            "solo, masterpiece, best quality, (cel shading:1.2), (thick lineart:1.15), "
+            + "(flat color:1.15), sharp focus, clean lines, webtoon, "
+            + "(white background:1.5), (simple background:1.5)";
 
     private final Random random;
 
@@ -47,7 +57,8 @@ public class PromptComposer {
     }
 
     private String buildPositive(ScenarioPanel panel) {
-        List<String> parts = new ArrayList<>(5);
+        List<String> parts = new ArrayList<>(6);
+        parts.add(STYLE_PREFIX);
         addIfPresent(parts, panel.actionTags());
         addIfPresent(parts, panel.emotionTags());
         addIfPresent(parts, panel.poseTags());
