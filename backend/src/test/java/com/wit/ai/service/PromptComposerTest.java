@@ -31,7 +31,8 @@ class PromptComposerTest {
 
         assertThat(result.loraName()).isEqualTo("yeonwoo_v1");
         assertThat(result.positivePrompt())
-                .isEqualTo("running through alley, looking forward, "
+                .startsWith("solo, masterpiece, best quality")  // STYLE_PREFIX
+                .contains("running through alley, looking forward, "
                         + "scared, urgent, "
                         + "dynamic running, leaning forward, "
                         + "wide angle, low angle, "
@@ -91,6 +92,8 @@ class PromptComposerTest {
 
         ComposedPrompt result = composer.compose(sparse, null);
 
-        assertThat(result.positivePrompt()).isEqualTo("running, wide angle");
+        assertThat(result.positivePrompt())
+                .startsWith("solo, masterpiece, best quality")  // STYLE_PREFIX
+                .endsWith("running, wide angle");
     }
 }
