@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class WorkflowTemplateLoader {
@@ -46,15 +48,22 @@ public class WorkflowTemplateLoader {
 
             // 3. negative 노드 ID 추출 → text 직접 수정
             String negativeNodeId = extractConnectedNodeId(kSampler, "negative");
+            log.info("[WorkflowTemplateLoader] negative inject → nodeId={}, text={}",
+                    negativeNodeId, params.negativePrompt());
             injectTextDirectly(workflow, negativeNodeId, params.negativePrompt());
 
-            // 4. LoRA 처리 (loraName null이거나 LoraTagLoader 없으면 skip)
+            // 4. LoRA 처리 — Character LoRA 노드만 식별해서 주입 (Style LoRA 노드는 건드리지 않음)
             if (params.loraName() != null) {
-                findNodeByClassType(workflow, "LoraTagLoader")
-                        .ifPresent(node -> ((ObjectNode) node.get("inputs"))
-                                .put("text", params.loraName()));
+                ObjectNode characterNode = findNodeByClassTypeAndTitle(
+                                workflow, "LoraTagLoader", "Character LoRA")
+                        .orElseThrow(() -> new IllegalStateException(
+                                "Character LoRA node (LoraTagLoader with title 'Character LoRA') "
+                                + "not found in workflow: " + templateName));
+                ((ObjectNode) characterNode.get("inputs")).put("text", params.loraName());
             }
 
+            log.info("[WorkflowTemplateLoader] positive(node 15) string_b = {}",
+                    workflow.path("15").path("inputs").path("string_b").asText());
             return objectMapper.writeValueAsString(workflow);
 
         } catch (IOException e) {
@@ -69,6 +78,24 @@ public class WorkflowTemplateLoader {
             JsonNode node = entry.getValue();
             if (node.has("class_type") && classType.equals(node.get("class_type").asText())) {
                 return Optional.of((ObjectNode) node);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ObjectNode> findNodeByClassTypeAndTitle(
+            ObjectNode workflow, String classType, String title) {
+        Iterator<Map.Entry<String, JsonNode>> fields = workflow.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            JsonNode node = entry.getValue();
+            if (node.has("class_type")
+                    && classType.equals(node.get("class_type").asText())) {
+                JsonNode meta = node.get("_meta");
+                if (meta != null && meta.has("title")
+                        && title.equals(meta.get("title").asText())) {
+                    return Optional.of((ObjectNode) node);
+                }
             }
         }
         return Optional.empty();
