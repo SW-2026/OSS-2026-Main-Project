@@ -47,6 +47,9 @@ public class Panel {
     @Column(columnDefinition = "TEXT")
     private String layoutData; // 레이어별 위치, 크기 정보 (JSON 문자열)
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String cutEditorData; // 편집기 그림 데이터 (strokes/balloons/canvasImages/layers JSON 문자열)
+
     @Column(columnDefinition = "TEXT")
     private String finalPrompt;
 
@@ -115,6 +118,11 @@ public class Panel {
     // 레이어 데이터 업데이트를 위한 비즈니스 메서드
     public void updateLayoutData(String layoutData) {
         this.layoutData = layoutData;
+    }
+
+    // 편집기 그림 데이터 (strokes/balloons/canvasImages/layers) 업데이트
+    public void updateCutEditorData(String cutEditorData) {
+        this.cutEditorData = cutEditorData;
     }
 
     public void updateStatus(PanelStatus status) {

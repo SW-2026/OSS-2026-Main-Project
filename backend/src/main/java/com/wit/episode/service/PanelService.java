@@ -7,10 +7,14 @@ import com.wit.background_asset.repository.BackgroundAssetRepository;
 import com.wit.episode.domain.Episode;
 import com.wit.episode.domain.Panel;
 import com.wit.episode.domain.PanelStatus;
+import com.wit.episode.dto.CutEditorDataResponse;
 import com.wit.episode.dto.PanelDetailResponse;
 import com.wit.episode.repository.EpisodeRepository;
 import com.wit.episode.repository.PanelRepository;
+import com.wit.member.domain.Member;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -174,5 +178,37 @@ public class PanelService {
     public void updatePanelLayout(Long panelId, String layoutData) {
         Panel panel = getPanel(panelId);
         panel.updateLayoutData(layoutData);
+    }
+
+    /**
+     * 8. 컷 편집기 데이터(strokes/balloons/canvasImages/layers JSON) 저장
+     * frontend supabase 대체. 권한 체크는 validatePanelAccess에서.
+     */
+    @Transactional
+    public void saveCutEditorData(Member member, Long panelId, String cutEditorData) {
+        Panel panel = validatePanelAccess(member, panelId);
+        panel.updateCutEditorData(cutEditorData);
+    }
+
+    /**
+     * 9. 컷 편집기 데이터 조회 (없으면 cutEditorData=null로 반환)
+     */
+    public CutEditorDataResponse getCutEditorData(Member member, Long panelId) {
+        Panel panel = validatePanelAccess(member, panelId);
+        return CutEditorDataResponse.from(panel);
+    }
+
+    /**
+     * 패널 소유 검증 — Panel → Episode → Project → Member 체인 확인
+     * 미존재: EntityNotFoundException(404). 타인 소유: AccessDeniedException(403)
+     * getPanel은 IllegalArgumentException(400)을 던지는 known_issue가 있어 별도 메서드로 분리
+     */
+    private Panel validatePanelAccess(Member member, Long panelId) {
+        Panel panel = panelRepository.findById(panelId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 패널을 찾을 수 없습니다. ID: " + panelId));
+        if (!panel.getEpisode().getProject().getMember().getMemberId().equals(member.getMemberId())) {
+            throw new AccessDeniedException("해당 패널에 대한 접근 권한이 없습니다.");
+        }
+        return panel;
     }
 }

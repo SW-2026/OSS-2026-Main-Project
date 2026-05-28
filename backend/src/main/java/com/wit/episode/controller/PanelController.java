@@ -4,6 +4,8 @@ import com.wit.ai.dto.AiPanelsGenerateRequest;
 import com.wit.ai.dto.TaskResponse;
 import com.wit.ai.service.PanelGenerationService;
 import com.wit.auth.dto.PrincipalDetails;
+import com.wit.episode.dto.CutEditorDataRequest;
+import com.wit.episode.dto.CutEditorDataResponse;
 import com.wit.episode.dto.PanelDetailResponse;
 import com.wit.episode.dto.PanelReorderRequest;
 import com.wit.episode.service.PanelService;
@@ -72,5 +74,25 @@ public class PanelController {
     public ApiResponse<Void> deletePanel(@PathVariable("panelId") Long panelId) {
         panelService.deletePanel(panelId);
         return ApiResponse.ok(null);
+    }
+
+    // 컷 편집기 데이터(strokes/balloons/canvasImages/layers JSON) 저장 — frontend supabase 대체
+    @PatchMapping("/panels/{panelId}/cut-data")
+    public ApiResponse<Void> saveCutEditorData(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("panelId") Long panelId,
+            @Valid @RequestBody CutEditorDataRequest request) {
+        Member member = principalDetails.getMember();
+        panelService.saveCutEditorData(member, panelId, request.cutEditorData());
+        return ApiResponse.ok(null);
+    }
+
+    // 컷 편집기 데이터 조회 (panel.cutEditorData가 NULL이면 응답.data.cutEditorData=null)
+    @GetMapping("/panels/{panelId}/cut-data")
+    public ApiResponse<CutEditorDataResponse> getCutEditorData(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("panelId") Long panelId) {
+        Member member = principalDetails.getMember();
+        return ApiResponse.ok(panelService.getCutEditorData(member, panelId));
     }
 }
