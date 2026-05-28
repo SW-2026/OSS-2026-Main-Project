@@ -34,7 +34,7 @@ public class CharacterModel {
     @Column(name = "model_name", nullable = false, length = 100)
     private String modelName;                 // 사용자 식별용 (예: "주인공 v1")
 
-    @Column(name = "trigger_word", length = 100)
+    @Column(name = "trigger_word", length = 1000)
     private String triggerWord;               // LoRA 트리거 (예: "anya_v1")
 
     @Column(name = "lora_model_path", length = 500)

@@ -14,7 +14,7 @@ public class CharacterModelCreateRequest {
     @Size(max = 100, message = "모델명은 100자 이내여야 합니다.")
     private String modelName;
 
-    @Size(max = 100, message = "triggerWord는 100자 이내여야 합니다.")
+    @Size(max = 1000, message = "triggerWord는 1000자 이내여야 합니다.")
     private String triggerWord;            // LoRA 트리거 (예: "anya_v1"), 학습 후 확정 가능
 
     @Size(max = 500, message = "loraModelPath는 500자 이내여야 합니다.")
