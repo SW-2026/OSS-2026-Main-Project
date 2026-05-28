@@ -32,3 +32,17 @@ ai:
     model: gemini-2.5-flash
     max-tokens: 8192
     temperature: 0.7
+  lora-catalog:
+    items:
+      - file-name: Lee_Kyung_Ho_ILL
+        display-name: 이경호
+        thumbnail-url: /images/lora-thumbs/Lee_Kyung_Ho_ILL.png
+        trigger-word: "KyungHo, 1boy, male focus, solo, brown hair, short hair, bangs, grey eyes, school uniform, shirt, white shirt, collared shirt, long sleeves, necktie, black necktie, vest, sweater vest, red vest, pants, bandaid, bandaid on face"
+      - file-name: Lee_jihye
+        display-name: 이지혜
+        thumbnail-url: /images/lora-thumbs/Lee_jihye.png
+        trigger-word: "long hair, bangs, ponytail, black hair, shirt, school uniform, jacket, white shirt, necktie, collared shirt, hoodie"
+      - file-name: lee_jiwoo
+        display-name: 이지우
+        thumbnail-url: /images/lora-thumbs/lee_jiwoo.png
+        trigger-word: "short hair, open mouth, shirt, school uniform, yellow eyes, white shirt, short sleeves, necktie, orange hair, orange eyes, black necktie"
