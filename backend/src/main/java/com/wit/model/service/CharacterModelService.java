@@ -1,5 +1,7 @@
 package com.wit.model.service;
 
+import com.wit.lora.domain.LoraCatalog;
+import com.wit.lora.repository.LoraCatalogRepository;
 import com.wit.member.domain.Member;
 import com.wit.model.domain.CharacterModel;
 import com.wit.model.domain.ModelStatus;
@@ -26,6 +28,7 @@ public class CharacterModelService {
 
     private final CharacterModelRepository characterModelRepository;
     private final ProjectRepository projectRepository;
+    private final LoraCatalogRepository loraCatalogRepository;
 
     /**
      * 모델 생성 — 메타데이터 저장 + 레퍼런스 이미지는 1.5단계에서 mock(저장 안 함).
@@ -68,6 +71,35 @@ public class CharacterModelService {
     public CharacterModelDetailResponse findById(Member member, Long modelId) {
         CharacterModel model = validateModelAccess(member, modelId);
         return toDetailResponse(model);
+    }
+
+    /**
+     * LoRA 카탈로그 기반 자동 등록 — 소재 탭에서 LoRA 카드 클릭 시 호출.
+     * 이미지/모델명 입력 없이 LoraCatalog 정보(displayName/triggerWord/fileName)로 자동 채움.
+     * 같은 프로젝트에 같은 LoRA 이미 등록됐으면 기존 모델 반환 (멱등).
+     */
+    @Transactional
+    public CharacterModelDetailResponse createFromLora(Member member, Long projectId, String loraFileName) {
+        Project project = validateProjectAccess(member, projectId);
+
+        LoraCatalog lora = loraCatalogRepository.findByFileName(loraFileName)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "해당 LoRA를 찾을 수 없습니다. fileName: " + loraFileName));
+
+        return characterModelRepository.findByProjectAndLoraModelPath(project, lora.getFileName())
+                .map(this::toDetailResponse)
+                .orElseGet(() -> {
+                    CharacterModel saved = characterModelRepository.save(
+                            CharacterModel.builder()
+                                    .project(project)
+                                    .modelName(lora.getDisplayName())
+                                    .triggerWord(lora.getTriggerWord())
+                                    .loraModelPath(lora.getFileName())
+                                    .status(ModelStatus.ACTIVE)  // 학습 mock — 즉시 ACTIVE
+                                    .build()
+                    );
+                    return toDetailResponse(saved);
+                });
     }
 
     /**

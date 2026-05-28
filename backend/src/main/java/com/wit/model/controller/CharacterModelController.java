@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,5 +83,22 @@ public class CharacterModelController {
     ) {
         Member member = principalDetails.getMember();
         return ApiResponse.ok(characterModelService.train(member, modelId));
+    }
+
+    /**
+     * 5. LoRA 카탈로그 기반 자동 등록 (POST /api/projects/{projectId}/models/from-lora?loraFileName=...)
+     * - 이미지/모델명 입력 없이 한 번에 등록 (소재 탭 카드 클릭 흐름)
+     * - 멱등 — 같은 LoRA로 재호출 시 기존 모델 반환
+     */
+    @PostMapping("/api/projects/{projectId}/models/from-lora")
+    public ApiResponse<CharacterModelDetailResponse> createFromLora(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable Long projectId,
+            @RequestParam String loraFileName
+    ) {
+        Member member = principalDetails.getMember();
+        return ApiResponse.created(
+                characterModelService.createFromLora(member, projectId, loraFileName)
+        );
     }
 }
