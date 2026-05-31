@@ -9,6 +9,7 @@ import com.wit.ai.config.ComfyUIProperties;
 import com.wit.ai.domain.AiTask;
 import com.wit.ai.domain.CharacterAsset;
 import com.wit.ai.dto.AiPanelsGenerateRequest;
+import com.wit.ai.dto.BackgroundMention;
 import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.ComposedPrompt;
 import com.wit.ai.dto.ScenarioPanel;
@@ -230,6 +231,67 @@ public class ComfyUIOrchestrator {
         } catch (Exception e) {
             String message = "[" + masterStage + "] " + e.getMessage();
             log.error("ComfyUIOrchestrator processPanelGeneration failed: {}", message, e);
+            task.markFailed(message);
+            aiTaskRepository.save(task);
+        }
+    }
+
+    // 1컷 생성 — 새 컷 1개 append 후 기존 processOnePanel 재사용. processPanelGeneration과 독립
+    @Async
+    @Transactional
+    public void processSinglePanelGeneration(Long taskId, Long episodeId,
+                                             Long characterModelId, Long backgroundAssetId,
+                                             String scenarioText) {
+        AiTask task = aiTaskRepository.findById(taskId).orElse(null);
+        if (task == null) {
+            log.error("ComfyUIOrchestrator: AiTask not found, taskId={}", taskId);
+            return;
+        }
+        String stage = "init";
+        try {
+            stage = "loadEpisode";
+            Episode episode = episodeRepository.findById(episodeId)
+                    .orElseThrow(() -> new EntityNotFoundException("Episode not found: " + episodeId));
+            task.markProcessing();
+            task.updateProgressPercent(0);
+            aiTaskRepository.save(task);
+
+            stage = "buildMention";
+            CharacterMention mention = null;
+            if (characterModelId != null) {
+                CharacterModel cm = characterModelRepository.findById(characterModelId)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "CharacterModel not found: " + characterModelId));
+                mention = new CharacterMention(cm.getModelName(), cm.getModelId(),
+                        cm.getTriggerWord(), cm.getLoraModelPath());
+            }
+            BackgroundMention background = (backgroundAssetId != null)
+                    ? new BackgroundMention(null, backgroundAssetId, null) : null;
+
+            stage = "analyzeSingle";
+            ScenarioPanel sp = scenarioAnalyzer.analyzeSingle(scenarioText, mention, background);
+
+            stage = "panelInit";
+            int lastOrder = panelRepository.findMaxOrderByEpisodeId(episodeId).orElse(0);
+            Panel panel = Panel.builder()
+                    .panelOrder(lastOrder + 1)
+                    .status(PanelStatus.PENDING)
+                    .scenarioText(sp.panelScenario())
+                    .extractedParams(serializeScenarioPanel(sp))
+                    .backgroundAssetId(backgroundAssetId)
+                    .build();
+            episode.addPanel(panel);
+            panelRepository.save(panel);
+
+            stage = "generate";
+            processOnePanel(panel, sp, mention);
+
+            task.updateProgressPercent(100);
+            task.markCompleted("Panel", panel.getPanelId(), panel.getFinalImageUrl());
+            aiTaskRepository.save(task);
+        } catch (Exception e) {
+            String message = "[" + stage + "] " + e.getMessage();
+            log.error("ComfyUIOrchestrator processSinglePanelGeneration failed: {}", message, e);
             task.markFailed(message);
             aiTaskRepository.save(task);
         }

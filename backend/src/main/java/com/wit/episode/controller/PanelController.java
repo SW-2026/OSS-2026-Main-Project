@@ -1,6 +1,7 @@
 package com.wit.episode.controller;
 
 import com.wit.ai.dto.AiPanelsGenerateRequest;
+import com.wit.ai.dto.GenerateSinglePanelRequest;
 import com.wit.ai.dto.TaskResponse;
 import com.wit.ai.service.PanelGenerationService;
 import com.wit.auth.dto.PrincipalDetails;
@@ -38,6 +39,19 @@ public class PanelController {
         Member member = principalDetails.getMember();
         TaskResponse response =
                 panelGenerationService.generate(member, episodeId, request);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.ok(response));
+    }
+
+    // 1컷 자동 생성 (비동기 → 202 + taskId). 폴링은 기존 /api/ai/tasks/{id} 재사용
+    @PostMapping("/episodes/{episodeId}/panels/generate-single")
+    public ResponseEntity<ApiResponse<TaskResponse>> generateSinglePanel(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episodeId") Long episodeId,
+            @Valid @RequestBody GenerateSinglePanelRequest request) {
+
+        Member member = principalDetails.getMember();
+        TaskResponse response =
+                panelGenerationService.generateSingle(member, episodeId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.ok(response));
     }
 

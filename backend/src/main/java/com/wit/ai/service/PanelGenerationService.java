@@ -6,6 +6,7 @@ import com.wit.ai.domain.TaskType;
 import com.wit.ai.dto.AiPanelsGenerateRequest;
 import com.wit.ai.dto.BackgroundMention;
 import com.wit.ai.dto.CharacterMention;
+import com.wit.ai.dto.GenerateSinglePanelRequest;
 import com.wit.ai.dto.TaskResponse;
 import com.wit.ai.repository.AiTaskRepository;
 import com.wit.background_asset.domain.BackgroundAsset;
@@ -66,6 +67,53 @@ public class PanelGenerationService {
                     });
         } else {
             orchestrator.processPanelGeneration(taskId, episodeId, request);
+        }
+
+        return toResponse(task);
+    }
+
+    // 1컷 생성 — generate()와 독립. 검증/AiTask/afterCommit 패턴 재사용, 첫 번째 캐릭터 1명만 반영
+    public TaskResponse generateSingle(Member member, Long episodeId,
+                                       GenerateSinglePanelRequest request) {
+        Episode episode = validateEpisodeAccess(member, episodeId);
+        Long projectId = episode.getProject().getProjectId();
+
+        Long characterModelId = (request.characterIds() != null && !request.characterIds().isEmpty())
+                ? request.characterIds().get(0) : null;
+        if (characterModelId != null) {
+            validateCharacterMentions(projectId,
+                    List.of(new CharacterMention(null, characterModelId, null)));
+        }
+        if (request.backgroundAssetId() != null) {
+            validateBackgroundMentions(member,
+                    List.of(new BackgroundMention(null, request.backgroundAssetId())));
+        }
+
+        AiTask task = aiTaskRepository.save(
+                AiTask.builder()
+                        .member(member)
+                        .taskType(TaskType.PANELS)
+                        .status(TaskStatus.PENDING)
+                        .progressPercent(0)
+                        .targetType("Episode")
+                        .targetId(episodeId)
+                        .build()
+        );
+
+        Long taskId = task.getTaskId();
+        Long charId = characterModelId;
+        Long bgId = request.backgroundAssetId();
+        String scenario = request.scenarioText();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            orchestrator.processSinglePanelGeneration(taskId, episodeId, charId, bgId, scenario);
+                        }
+                    });
+        } else {
+            orchestrator.processSinglePanelGeneration(taskId, episodeId, charId, bgId, scenario);
         }
 
         return toResponse(task);

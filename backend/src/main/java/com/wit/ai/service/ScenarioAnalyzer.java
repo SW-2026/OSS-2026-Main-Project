@@ -10,6 +10,7 @@ import com.wit.ai.dto.CharacterMention;
 import com.wit.ai.dto.ScenarioPanel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ public class ScenarioAnalyzer {
     private final LlmClient llmClient;
     private final ObjectMapper objectMapper;
     private final String systemPrompt;
+    private volatile String singlePrompt; // 1컷 전용 프롬프트 — lazy 로드(생성자 미변경, 테스트 무손상)
 
     public ScenarioAnalyzer(
             LlmClient llmClient,
@@ -69,6 +71,44 @@ public class ScenarioAnalyzer {
                 "ScenarioAnalyzer failed: expected " + MIN_PANEL_COUNT + "~" + MAX_PANEL_COUNT
                         + " panels after " + (MAX_RETRIES + 1) + " attempts"
                         + ". last response snippet: " + lastSnippet);
+    }
+
+    // 1컷 전용 — analyze()와 독립. 6컷 검증/재시도 무관, 첫 번째 패널만 반환. private 헬퍼 재사용
+    public ScenarioPanel analyzeSingle(String scenarioText,
+                                       CharacterMention mention,
+                                       BackgroundMention background) {
+        List<CharacterMention> mentions = (mention != null) ? List.of(mention) : List.of();
+        List<BackgroundMention> backgrounds = (background != null) ? List.of(background) : List.of();
+        String userMessage = buildUserMessage(scenarioText, mentions, backgrounds);
+        Set<Long> validModelIds = collectValidModelIds(mentions);
+        Set<Long> validAssetIds = collectValidAssetIds(backgrounds);
+
+        String lastSnippet = null;
+        for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            String response = llmClient.complete(singlePrompt(), userMessage);
+            lastSnippet = snippet(response);
+            List<ScenarioPanel> panels = parsePanels(response);
+            if (!panels.isEmpty()) {
+                return sanitize(panels, validModelIds, validAssetIds).get(0);
+            }
+            log.warn("analyzeSingle attempt {}: got 0 panels", attempt + 1);
+        }
+        throw new LlmException("analyzeSingle failed: no panel after "
+                + (MAX_RETRIES + 1) + " attempts. last snippet: " + lastSnippet);
+    }
+
+    private String singlePrompt() { // lazy — scenario-single.txt 로드(생성자 미변경)
+        String p = this.singlePrompt;
+        if (p == null) {
+            try {
+                p = new ClassPathResource("prompts/scenario-single.txt")
+                        .getContentAsString(StandardCharsets.UTF_8);
+                this.singlePrompt = p;
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to load scenario-single prompt", e);
+            }
+        }
+        return p;
     }
 
     private String buildUserMessage(String scenarioText,
