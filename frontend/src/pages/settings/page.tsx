@@ -173,7 +173,7 @@ export default function SettingsPage() {
             취소
           </button>
           <button
-            onClick={() => { /* 저장 로직 - 나중에 Supabase 연동 */ }}
+            onClick={() => { /* 저장 로직 - 추후 구현 */ }}
             className="px-5 py-2.5 rounded-xl bg-orange-500 text-xs text-white hover:bg-orange-600 transition-colors cursor-pointer whitespace-nowrap"
           >
             변경사항 저장

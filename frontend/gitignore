@@ -1,0 +1,10 @@
+# Git 관리에서 제외할 파일들
+node_modules/
+.env
+*.png
+*.pdf
+*.hwp
+*.hwpx
+*.zip
+*.lnk
+desktop.ini
