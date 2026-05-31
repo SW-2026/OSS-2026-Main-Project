@@ -11,10 +11,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 250MB
 
 jwt:
   secret: "your-secret-key-minimum-32-characters"
   expiration: 86400000
+
+# 관리자 이메일 화이트리스트 — 콤마 구분 (env ADMIN_EMAILS로 override)
+admin:
+  email-whitelist: ${ADMIN_EMAILS:ansis0125@gmail.com}
 
 ai:
   comfyui:
