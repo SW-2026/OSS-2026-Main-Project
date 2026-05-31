@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 // LoRA 신청 이미지 저장 — 요청별 폴더, 클라 파일명 미사용({index}.{ext}). StorageProperties 재사용.
 @Component
@@ -33,6 +36,33 @@ public class LoraImageStorage {
             throw new RuntimeException("[lora-storage] " + e.getMessage(), e);
         }
         return "/images/" + CATEGORY + "/" + requestId + "/";
+    }
+
+    // 저장된 이미지들의 접근 URL 목록 (관리자 미리보기용) — index 순 정렬
+    public List<String> listImageUrls(Long requestId) {
+        Path dir = Paths.get(properties.localPath(), CATEGORY, String.valueOf(requestId));
+        if (!Files.isDirectory(dir)) {
+            return List.of();
+        }
+        try (Stream<Path> files = Files.list(dir)) {
+            return files
+                    .filter(Files::isRegularFile)
+                    .map(p -> p.getFileName().toString())
+                    .sorted(Comparator.comparingInt(LoraImageStorage::indexOf))
+                    .map(name -> "/images/" + CATEGORY + "/" + requestId + "/" + name)
+                    .toList();
+        } catch (IOException e) {
+            return List.of();
+        }
+    }
+
+    private static int indexOf(String filename) {
+        int dot = filename.indexOf('.');
+        try {
+            return Integer.parseInt(dot > 0 ? filename.substring(0, dot) : filename);
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     // === 매직바이트 기반 이미지 판별 (클라 content-type 신뢰 X) ===

@@ -70,4 +70,22 @@ public class LoraRequest {
     public void updateImageDir(String imageDir) {
         this.imageDir = imageDir;
     }
+
+    // === 관리자 처리 (Phase 1.5) ===
+
+    public void updateStatus(LoraRequestStatus status) {
+        this.status = status;
+    }
+
+    public void updateAdminNotes(String adminNotes) {
+        this.adminNotes = adminNotes;
+    }
+
+    public void markCompleted(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public void linkCatalog(LoraCatalog loraCatalog) {
+        this.loraCatalog = loraCatalog;
+    }
 }

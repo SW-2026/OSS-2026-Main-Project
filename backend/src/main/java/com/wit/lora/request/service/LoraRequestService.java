@@ -1,10 +1,13 @@
 package com.wit.lora.request.service;
 
 import com.wit.global.config.AdminProperties;
+import com.wit.lora.domain.LoraCatalog;
+import com.wit.lora.repository.LoraCatalogRepository;
 import com.wit.lora.request.domain.LoraRequest;
 import com.wit.lora.request.domain.LoraRequestStatus;
 import com.wit.lora.request.dto.LoraRequestCreateRequest;
 import com.wit.lora.request.dto.LoraRequestResponse;
+import com.wit.lora.request.dto.LoraRequestUpdateRequest;
 import com.wit.lora.request.repository.LoraRequestRepository;
 import com.wit.lora.request.storage.LoraImageStorage;
 import com.wit.member.domain.Member;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,6 +33,7 @@ public class LoraRequestService {
     private final LoraRequestRepository loraRequestRepository;
     private final LoraImageStorage loraImageStorage;
     private final AdminProperties adminProperties;
+    private final LoraCatalogRepository loraCatalogRepository;
 
     @Transactional
     public LoraRequestResponse create(Member member, LoraRequestCreateRequest metadata,
@@ -61,7 +66,7 @@ public class LoraRequestService {
         return loraRequestRepository
                 .findByMember_MemberIdOrderByCreatedAtDesc(member.getMemberId())
                 .stream()
-                .map(LoraRequestResponse::from)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -73,7 +78,7 @@ public class LoraRequestService {
         if (!owner && !adminProperties.isAdmin(member.getEmail())) {
             throw new AccessDeniedException("해당 LoRA 신청에 대한 접근 권한이 없습니다.");
         }
-        return LoraRequestResponse.from(request);
+        return toResponse(request);
     }
 
     // [관리자] status 필터 (null이면 전체)
@@ -82,7 +87,36 @@ public class LoraRequestService {
         List<LoraRequest> list = (status != null)
                 ? loraRequestRepository.findByStatusOrderByCreatedAtDesc(status)
                 : loraRequestRepository.findAll();
-        return list.stream().map(LoraRequestResponse::from).toList();
+        return list.stream().map(this::toResponse).toList();
+    }
+
+    // [관리자] 신청 상태/메모 변경 (Phase 1.5) — 자유 전이, COMPLETED 시 completedAt + 카탈로그(선택) 연결
+    @Transactional
+    public LoraRequestResponse updateByAdmin(Member member, Long requestId,
+                                             LoraRequestUpdateRequest body) {
+        requireAdmin(member);
+        LoraRequest request = loraRequestRepository.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "해당 LoRA 신청을 찾을 수 없습니다. ID: " + requestId));
+
+        request.updateStatus(body.status());
+        if (body.adminNotes() != null) {
+            request.updateAdminNotes(body.adminNotes());
+        }
+        if (body.status() == LoraRequestStatus.COMPLETED) {
+            request.markCompleted(LocalDateTime.now());
+            if (body.loraCatalogId() != null) {
+                LoraCatalog catalog = loraCatalogRepository.findById(body.loraCatalogId())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "LoraCatalog을 찾을 수 없습니다. ID: " + body.loraCatalogId()));
+                request.linkCatalog(catalog);
+            }
+        }
+        return toResponse(request);
+    }
+
+    private LoraRequestResponse toResponse(LoraRequest request) {
+        return LoraRequestResponse.from(request, loraImageStorage.listImageUrls(request.getRequestId()));
     }
 
     private void requireAdmin(Member member) {

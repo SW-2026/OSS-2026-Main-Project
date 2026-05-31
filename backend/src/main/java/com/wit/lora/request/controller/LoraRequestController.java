@@ -5,6 +5,7 @@ import com.wit.global.response.ApiResponse;
 import com.wit.lora.request.domain.LoraRequestStatus;
 import com.wit.lora.request.dto.LoraRequestCreateRequest;
 import com.wit.lora.request.dto.LoraRequestResponse;
+import com.wit.lora.request.dto.LoraRequestUpdateRequest;
 import com.wit.lora.request.service.LoraRequestService;
 import com.wit.member.domain.Member;
 import jakarta.validation.Valid;
@@ -60,5 +61,15 @@ public class LoraRequestController {
             @RequestParam(value = "status", required = false) LoraRequestStatus status) {
         Member member = principalDetails.getMember();
         return ApiResponse.ok(loraRequestService.listByStatus(member, status));
+    }
+
+    // [관리자] 신청 상태/메모 변경 (Phase 1.5)
+    @PatchMapping("/admin/lora-requests/{requestId}")
+    public ApiResponse<LoraRequestResponse> updateByAdmin(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("requestId") Long requestId,
+            @Valid @RequestBody LoraRequestUpdateRequest request) {
+        Member member = principalDetails.getMember();
+        return ApiResponse.ok(loraRequestService.updateByAdmin(member, requestId, request));
     }
 }
